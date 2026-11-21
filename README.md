@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Wiki UMK
 
-## Getting Started
+Platform informasi akademik dan forum diskusi mahasiswa Universitas Muria Kudus.
 
-First, run the development server:
+Dibangun dengan [Next.js](https://nextjs.org) 16 (App Router), React 19, Tailwind CSS 4, dan pnpm.
+
+## Prasyarat
+
+- Node.js 20 atau lebih baru
+- pnpm (jalankan `corepack enable`, atau `npm install -g pnpm`)
+
+## Menjalankan Proyek
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+git clone https://github.com/USERNAME/wikiumk.git
+cd wikiumk
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Perintah lain:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm lint   # periksa kode dengan ESLint
+pnpm build  # build produksi, wajib hijau sebelum merge
+```
 
-## Learn More
+## Struktur Folder
 
-To learn more about Next.js, take a look at the following resources:
+```
+wikiumk/
+├── app/            # Halaman & route (App Router)
+├── public/         # Aset statis
+├── components/     # Komponen UI bersama (menyusul)
+├── lib/            # Utilitas & koneksi database (menyusul)
+├── prisma/         # Skema database (menyusul)
+├── docs/           # Dokumentasi (ERD, dsb.)
+├── CONTRIBUTING.md # Aturan branch, merge, dan review
+└── README.md
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Alur Kerja Git
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Ringkasan — detail lengkap ada di [CONTRIBUTING.md](CONTRIBUTING.md):
 
-## Deploy on Vercel
+1. Ambil perubahan terbaru: `git pull origin master`
+2. Buat branch fitur: `git checkout -b fitur/nama-fitur`
+3. Kerjakan, commit, lalu push: `git push origin fitur/nama-fitur`
+4. Buka Pull Request, tunggu review minimal 1 orang, baru merge ke `master`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Environment Variables
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Belum ada. Akan ditambahkan bersamaan dengan setup database (Task 2), dan hanya `.env.example` yang di-commit.
+
+## Deploy
+
+Belum dikonfigurasi. Akan didokumentasikan pada Task 3.
