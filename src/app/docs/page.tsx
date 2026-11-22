@@ -71,7 +71,7 @@ export default function DocsPage() {
             Wiki UMK — API Documentation
           </h1>
           <p className="text-sm text-zinc-500">
-            OpenAPI 3.1 · Sprint 1 (health, auth, kategori, artikel)
+            OpenAPI 3.1 · Sprint 1 (health, auth, categories, articles)
           </p>
         </div>
         <div className="flex gap-4 text-sm">
@@ -87,7 +87,7 @@ export default function DocsPage() {
             href="/"
             className="text-zinc-600 underline hover:text-zinc-900"
           >
-            ← Beranda
+            ← Home
           </Link>
         </div>
       </header>
