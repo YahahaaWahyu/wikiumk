@@ -31,19 +31,22 @@ pnpm build  # build produksi, wajib hijau sebelum merge
 
 ```
 wikiumk/
-├── app/            # Halaman & route (App Router)
+├── src/
+│   ├── app/        # Halaman & route (App Router)
+│   ├── components/ # Komponen UI bersama (menyusul)
+│   └── lib/        # Utilitas & koneksi database (menyusul)
 ├── public/         # Aset statis
-├── components/     # Komponen UI bersama (menyusul)
-├── lib/            # Utilitas & koneksi database (menyusul)
 ├── prisma/         # Skema database (menyusul)
-├── docs/           # Dokumentasi (ERD, dsb.)
+├── docs/           # Dokumentasi (ERD, struktur folder, dsb.)
 ├── CONTRIBUTING.md # Aturan branch, merge, dan review
 └── README.md
 ```
 
+Penjelasan tiap folder ada di [docs/struktur-folder.md](docs/struktur-folder.md).
+
 ## Alur Kerja Git
 
-Ringkasan — detail lengkap ada di [CONTRIBUTING.md](CONTRIBUTING.md):
+Detail lengkap ada di [CONTRIBUTING.md](CONTRIBUTING.md). Ringkasannya:
 
 1. Ambil perubahan terbaru: `git pull origin main`
 2. Buat branch fitur: `git checkout -b fitur/nama-fitur`
