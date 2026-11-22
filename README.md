@@ -45,10 +45,10 @@ wikiumk/
 
 Ringkasan — detail lengkap ada di [CONTRIBUTING.md](CONTRIBUTING.md):
 
-1. Ambil perubahan terbaru: `git pull origin master`
+1. Ambil perubahan terbaru: `git pull origin main`
 2. Buat branch fitur: `git checkout -b fitur/nama-fitur`
 3. Kerjakan, commit, lalu push: `git push origin fitur/nama-fitur`
-4. Buka Pull Request, tunggu review minimal 1 orang, baru merge ke `master`
+4. Buka Pull Request, tunggu review minimal 1 orang, baru merge ke `main`
 
 ## Environment Variables
 

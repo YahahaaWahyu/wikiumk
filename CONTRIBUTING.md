@@ -6,14 +6,14 @@ Aturan branch, merge, dan review kode untuk tim Wiki UMK.
 
 | Branch | Fungsi | Siapa yang boleh merge |
 |---|---|---|
-| `master` | Versi stabil, selalu dalam keadaan build hijau | Melalui Pull Request + review |
+| `main` | Versi stabil, selalu dalam keadaan build hijau | Melalui Pull Request + review |
 | `fitur/nama-fitur` | Pengerjaan fitur baru (mis. `fitur/login`) | — |
 | `fix/nama-bug` | Perbaikan bug (mis. `fix/nav-hp`) | — |
 
 Aturan:
 
-- Selalu mulai dari `master` terbaru: `git pull origin master` lalu `git checkout -b fitur/...`
-- Jangan langsung commit ke `master`
+- Selalu mulai dari `main` terbaru: `git pull origin main` lalu `git checkout -b fitur/...`
+- Jangan langsung commit ke `main`
 - Satu branch untuk satu topik pekerjaan
 
 ## Commit
@@ -30,7 +30,7 @@ refactor: pindahkan komponen header ke components/
 ## Pull Request & Review
 
 1. Push branch ke GitHub: `git push origin fitur/nama-fitur`
-2. Buka PR ke `master`, isi judul dan deskripsi singkat
+2. Buka PR ke `main`, isi judul dan deskripsi singkat
 3. PR **wajib**:
    - Minimal **1 review** dari anggota tim lain
    - `pnpm lint` tidak error
