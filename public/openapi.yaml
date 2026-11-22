@@ -1,32 +1,39 @@
 openapi: 3.1.0
 info:
   title: Wiki UMK API
-  version: 0.1.0
+  version: 0.4.0
   license:
     name: MIT
     identifier: MIT
   description: |
-    REST API untuk Wiki UMK — platform informasi akademik dan forum diskusi
+    REST API untuk Wiki UMK, platform informasi akademik dan forum diskusi
     mahasiswa Universitas Muria Kudus.
 
-    **Standar respons:** semua endpoint mengembalikan `{ "sukses": true, "data": ... }`
-    untuk berhasil, atau `{ "sukses": false, "pesan": "..." }` untuk gagal.
+    **Amplop respons:** semua endpoint mengembalikan
+    `{ "success": true, "data": ... }` saat berhasil, atau
+    `{ "success": false, "message": "..." }` saat gagal. Endpoint daftar
+    menambahkan objek `pagination` di samping `data`.
 
-    **Status Sprint 1:** health, auth, kategori, dan baca artikel.
-    Endpoint forum, komentar, moderasi admin, dan CRUD artikel menyusul di sprint berikutnya.
+    **Isi artikel** disimpan sebagai markdown. Server menyanitasi isi sebelum
+    menyimpan dan sebelum mengirim, jadi klien tidak menerima HTML mentah
+    dari pengguna.
+
+    **Cakupan Sprint 1:** health, auth, kategori, baca artikel, jumlah dibaca,
+    dan pengelolaan artikel oleh admin. Endpoint forum, komentar, dan
+    moderasi menyusul di sprint berikutnya.
 servers:
   - url: http://localhost:3000/api
-    description: Development
+    description: Lingkungan pengembangan
 security: []
 tags:
   - name: Health
     description: Pemeriksaan kesehatan API
   - name: Auth
     description: Autentikasi pengguna (register, login, logout, sesi)
-  - name: Kategori
+  - name: Categories
     description: Kategori artikel wiki
-  - name: Artikel
-    description: Baca artikel wiki
+  - name: Articles
+    description: Baca artikel wiki dan pengelolaannya oleh admin
 
 paths:
   /health:
@@ -40,13 +47,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResponsSehat"
-        "405":
-          description: Method selain GET tidak diizinkan
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponsGagal"
+                $ref: "#/components/schemas/HealthResponse"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /auth/register:
     post:
@@ -59,19 +62,23 @@ paths:
           application/json:
             schema:
               type: object
-              required: [nama, email, password]
+              additionalProperties: false
+              required: [name, email, password]
               properties:
-                nama:
+                name:
                   type: string
                   minLength: 1
+                  maxLength: 100
                   example: Budi Santoso
                 email:
                   type: string
                   format: email
+                  maxLength: 254
                   example: budi@std.umk.ac.id
                 password:
                   type: string
                   minLength: 8
+                  maxLength: 72
                   example: rahasia123
       responses:
         "201":
@@ -79,38 +86,35 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResponsUser"
+                $ref: "#/components/schemas/UserResponse"
               example:
-                sukses: true
+                success: true
                 data:
                   id: "1"
-                  nama: Budi Santoso
+                  name: Budi Santoso
                   email: budi@std.umk.ac.id
-                  peran: MAHASISWA
+                  role: STUDENT
         "400":
-          description: Validasi gagal (field kosong, password terlalu pendek, format email salah)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponsGagal"
-              example:
-                sukses: false
-                pesan: Password minimal 8 karakter
+          $ref: "#/components/responses/BadRequest"
         "409":
           description: Email sudah terdaftar
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResponsGagal"
+                $ref: "#/components/schemas/ErrorResponse"
               example:
-                sukses: false
-                pesan: Email sudah terdaftar
+                success: false
+                message: Email sudah terdaftar
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /auth/login:
     post:
       tags: [Auth]
       summary: Login dan mulai sesi
-      description: Berhasil login akan menyetel cookie sesi (httpOnly).
+      description: |
+        Login yang berhasil menyetel cookie sesi dengan atribut
+        `HttpOnly; Secure; SameSite=Lax; Path=/`.
       operationId: login
       requestBody:
         required: true
@@ -118,6 +122,7 @@ paths:
           application/json:
             schema:
               type: object
+              additionalProperties: false
               required: [email, password]
               properties:
                 email:
@@ -129,57 +134,52 @@ paths:
                   example: rahasia123
       responses:
         "200":
-          description: Login berhasil, cookie sesi di-set
+          description: Login berhasil dan cookie sesi di-set
           headers:
             Set-Cookie:
-              description: Sesi pengguna (httpOnly, SameSite)
+              description: Cookie sesi (HttpOnly; Secure; SameSite=Lax; Path=/)
               schema:
                 type: string
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResponsUser"
+                $ref: "#/components/schemas/UserResponse"
         "400":
-          description: Field email/password wajib diisi
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponsGagal"
+          $ref: "#/components/responses/BadRequest"
         "401":
           description: Email atau password salah
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResponsGagal"
+                $ref: "#/components/schemas/ErrorResponse"
               example:
-                sukses: false
-                pesan: Email atau password salah
+                success: false
+                message: Email atau password salah
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /auth/logout:
     post:
       tags: [Auth]
       summary: Keluar dari sesi
       operationId: logout
+      security:
+        - cookieAuth: []
       responses:
         "200":
-          description: Sesi dihapus
+          description: Sesi diakhiri
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResponsKosong"
+                $ref: "#/components/schemas/MessageResponse"
               example:
-                sukses: true
+                success: true
                 data:
-                  pesan: Berhasil keluar
+                  message: Berhasil keluar
         "401":
-          description: Belum login
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponsGagal"
-              example:
-                sukses: false
-                pesan: Belum login
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /auth/me:
     get:
@@ -190,171 +190,212 @@ paths:
         - cookieAuth: []
       responses:
         "200":
-          description: Data pengguna login sekarang
+          description: Pengguna yang sedang login
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResponsUser"
+                $ref: "#/components/schemas/UserResponse"
         "401":
-          description: Belum login / sesi habis
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponsGagal"
-              example:
-                sukses: false
-                pesan: Belum login
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
-  /kategori:
+  /categories:
     get:
-      tags: [Kategori]
+      tags: [Categories]
       summary: Daftar kategori artikel
-      operationId: getKategori
+      operationId: getCategories
       responses:
         "200":
           description: Daftar kategori
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  sukses:
-                    type: boolean
-                    example: true
-                  data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Kategori"
+                $ref: "#/components/schemas/CategoryListResponse"
               example:
-                sukses: true
+                success: true
                 data:
                   - slug: akademik
-                    nama: Akademik
-                    jumlahArtikel: 3
+                    name: Akademik
+                    articleCount: 3
                   - slug: organisasi
-                    nama: Organisasi
-                    jumlahArtikel: 1
-        "405":
-          description: Method selain GET tidak diizinkan
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponsGagal"
+                    name: Organisasi
+                    articleCount: 1
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
-  /artikel:
+  /articles:
     get:
-      tags: [Artikel]
-      summary: Daftar artikel (dengan filter dan pencarian)
-      operationId: getArtikel
+      tags: [Articles]
+      summary: Daftar artikel dengan filter dan pencarian
+      operationId: getArticles
       parameters:
-        - name: kategori
-          in: query
-          required: false
-          description: Filter berdasarkan slug kategori
-          schema:
-            type: string
-          example: akademik
-        - name: q
-          in: query
-          required: false
-          description: Kata kunci pencarian (judul/ringkasan)
-          schema:
-            type: string
-          example: beasiswa
-        - name: halaman
-          in: query
-          required: false
-          description: Nomor halaman (mulai dari 1)
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
-        - name: perHalaman
-          in: query
-          required: false
-          description: Jumlah artikel per halaman
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 10
+        - $ref: "#/components/parameters/CategoryFilter"
+        - $ref: "#/components/parameters/SearchQuery"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PerPage"
       responses:
         "200":
-          description: Daftar artikel + info paginasi
+          description: Daftar artikel beserta info paginasi
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  sukses:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/ArtikelRingkas"
-                  paginasi:
-                    $ref: "#/components/schemas/Paginasi"
+                $ref: "#/components/schemas/ArticleListResponse"
               example:
-                sukses: true
+                success: true
                 data:
                   - slug: beasiswa-ppm-2026
-                    judul: Beasiswa PPM 2026 Dibuka
-                    ringkasan: Pendaftaran beasiswa PPM tahun 2026 dibuka mulai Januari.
-                    kategori:
+                    title: Beasiswa PPM 2026 Dibuka
+                    summary: Pendaftaran beasiswa PPM tahun 2026 dibuka mulai Januari.
+                    category:
                       slug: akademik
-                      nama: Akademik
-                    penulis:
-                      nama: Admin
-                    tanggalDibuat: "2026-01-12T00:00:00.000Z"
-                paginasi:
-                  halaman: 1
-                  perHalaman: 10
+                      name: Akademik
+                    author:
+                      name: Admin
+                    createdAt: "2026-01-12T00:00:00.000Z"
+                pagination:
+                  page: 1
+                  perPage: 10
                   total: 1
-                  totalHalaman: 1
+                  totalPages: 1
         "400":
-          description: Parameter tidak valid (mis. halaman < 1 atau perHalaman > 50)
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags: [Articles]
+      summary: Buat artikel baru (khusus admin)
+      operationId: createArticle
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArticleInput"
+      responses:
+        "201":
+          description: Artikel dibuat
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResponsGagal"
-              example:
-                sukses: false
-                pesan: Parameter tidak valid
+                $ref: "#/components/schemas/ArticleResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
-  /artikel/{slug}:
+  /articles/{slug}:
     get:
-      tags: [Artikel]
+      tags: [Articles]
       summary: Detail artikel berdasarkan slug
-      operationId: getArtikelBySlug
+      description: |
+        Tidak menambah `readCount`. Hitungan pembaca dinaikkan lewat
+        `POST /articles/{slug}/read` supaya respons ini tetap bisa di-cache.
+      operationId: getArticleBySlug
       parameters:
-        - name: slug
-          in: path
-          required: true
-          description: Slug unik artikel
-          schema:
-            type: string
-          example: beasiswa-ppm-2026
+        - $ref: "#/components/parameters/Slug"
       responses:
         "200":
           description: Detail artikel
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  sukses:
-                    type: boolean
-                  data:
-                    $ref: "#/components/schemas/Artikel"
+                $ref: "#/components/schemas/ArticleResponse"
         "404":
-          description: Artikel tidak ditemukan
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      tags: [Articles]
+      summary: Ubah artikel (khusus admin)
+      description: Mengganti seluruh isi artikel dan memperbarui `updatedAt`.
+      operationId: updateArticle
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Slug"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArticleInput"
+      responses:
+        "200":
+          description: Artikel diperbarui
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResponsGagal"
+                $ref: "#/components/schemas/ArticleResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      tags: [Articles]
+      summary: Hapus artikel (khusus admin)
+      operationId: deleteArticle
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Slug"
+      responses:
+        "200":
+          description: Artikel dihapus
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
               example:
-                sukses: false
-                pesan: Artikel tidak ditemukan
+                success: true
+                data:
+                  message: Artikel dihapus
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /articles/{slug}/read:
+    post:
+      tags: [Articles]
+      summary: Catat satu kali baca artikel
+      description: |
+        Dipanggil halaman detail setelah artikel tampil. Operasi terpisah
+        supaya `GET /articles/{slug}` tetap dapat di-cache.
+      operationId: recordArticleRead
+      parameters:
+        - $ref: "#/components/parameters/Slug"
+      responses:
+        "200":
+          description: Jumlah baca terbaru
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadCountResponse"
+              example:
+                success: true
+                data:
+                  readCount: 121
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
 components:
   securitySchemes:
@@ -362,42 +403,144 @@ components:
       type: apiKey
       in: cookie
       name: session
-      description: Cookie sesi yang diset saat login (httpOnly)
+      description: Cookie sesi yang diset saat login (HttpOnly; Secure; SameSite=Lax)
+
+  parameters:
+    Slug:
+      name: slug
+      in: path
+      required: true
+      description: Slug unik artikel
+      schema:
+        type: string
+      example: beasiswa-ppm-2026
+    CategoryFilter:
+      name: category
+      in: query
+      required: false
+      description: Filter berdasarkan slug kategori
+      schema:
+        type: string
+      example: akademik
+    SearchQuery:
+      name: q
+      in: query
+      required: false
+      description: Kata kunci pencarian pada judul dan ringkasan
+      schema:
+        type: string
+        maxLength: 100
+      example: beasiswa
+    Page:
+      name: page
+      in: query
+      required: false
+      description: Nomor halaman, mulai dari 1
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PerPage:
+      name: perPage
+      in: query
+      required: false
+      description: Jumlah artikel per halaman
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 10
+
+  responses:
+    BadRequest:
+      description: Validasi gagal atau parameter tidak valid
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            message: Judul artikel wajib diisi
+    Unauthorized:
+      description: Belum login atau sesi sudah berakhir
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            message: Belum login
+    Forbidden:
+      description: Sudah login, tetapi akunnya bukan admin
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            message: Hanya admin yang boleh mengubah artikel
+    NotFound:
+      description: Artikel tidak ditemukan
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            message: Artikel tidak ditemukan
+    InternalServerError:
+      description: Kesalahan server atau koneksi database gagal
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            message: Terjadi kesalahan pada server
 
   schemas:
-    ResponsSehat:
+    HealthResponse:
       type: object
+      required: [success, data]
       properties:
-        sukses:
+        success:
           type: boolean
           example: true
         data:
           type: string
           example: ok
 
-    ResponsGagal:
+    ErrorResponse:
       type: object
+      required: [success, message]
       properties:
-        sukses:
+        success:
           type: boolean
           example: false
-        pesan:
+        message:
           type: string
-          example: Terjadi kesalahan
+          example: Terjadi kesalahan pada server
 
-    ResponsKosong:
+    MessageResponse:
       type: object
+      required: [success, data]
       properties:
-        sukses:
+        success:
           type: boolean
           example: true
         data:
           type: object
+          required: [message]
+          properties:
+            message:
+              type: string
+              example: Berhasil keluar
 
-    ResponsUser:
+    UserResponse:
       type: object
+      required: [success, data]
       properties:
-        sukses:
+        success:
           type: boolean
           example: true
         data:
@@ -405,94 +548,194 @@ components:
 
     User:
       type: object
+      required: [id, name, email, role]
       properties:
         id:
           type: string
           example: "1"
-        nama:
+        name:
           type: string
           example: Budi Santoso
         email:
           type: string
           format: email
           example: budi@std.umk.ac.id
-        peran:
-          $ref: "#/components/schemas/Peran"
+        role:
+          $ref: "#/components/schemas/Role"
 
-    Peran:
+    Role:
       type: string
-      enum: [MAHASISWA, ADMIN]
-      example: MAHASISWA
+      enum: [STUDENT, ADMIN]
+      example: STUDENT
 
-    Kategori:
+    Category:
       type: object
+      required: [slug, name, articleCount]
       properties:
         slug:
           type: string
           example: akademik
-        nama:
+        name:
           type: string
           example: Akademik
-        jumlahArtikel:
+        articleCount:
           type: integer
           example: 3
 
-    ArtikelRingkas:
+    CategoryListResponse:
       type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Category"
+
+    CategoryRef:
+      type: object
+      required: [slug, name]
+      properties:
+        slug:
+          type: string
+          example: akademik
+        name:
+          type: string
+          example: Akademik
+
+    Author:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          example: Admin
+
+    ArticleSummary:
+      type: object
+      required: [slug, title, summary, category, author, createdAt]
       properties:
         slug:
           type: string
           example: beasiswa-ppm-2026
-        judul:
+        title:
           type: string
           example: Beasiswa PPM 2026 Dibuka
-        ringkasan:
+        summary:
           type: string
           example: Pendaftaran beasiswa PPM tahun 2026 dibuka mulai Januari.
-        kategori:
-          type: object
-          properties:
-            slug:
-              type: string
-              example: akademik
-            nama:
-              type: string
-              example: Akademik
-        penulis:
-          type: object
-          properties:
-            nama:
-              type: string
-              example: Admin
-        tanggalDibuat:
+        category:
+          $ref: "#/components/schemas/CategoryRef"
+        author:
+          $ref: "#/components/schemas/Author"
+        createdAt:
           type: string
           format: date-time
           example: "2026-01-12T00:00:00.000Z"
 
-    Artikel:
+    Article:
       allOf:
-        - $ref: "#/components/schemas/ArtikelRingkas"
+        - $ref: "#/components/schemas/ArticleSummary"
         - type: object
+          required: [content, readCount, updatedAt]
           properties:
-            isi:
+            content:
               type: string
-              example: "<p>Isi lengkap artikel dalam HTML/markdown...</p>"
-            jumlahDibaca:
+              description: |
+                Isi artikel dalam markdown. Server menyanitasi isi sebelum
+                menyimpan dan sebelum mengirim, sehingga tag HTML dari
+                pengguna tidak tersimpan sebagai HTML mentah.
+              example: "Pendaftaran dibuka sampai 31 Januari 2026."
+            readCount:
               type: integer
+              description: Dinaikkan oleh `POST /articles/{slug}/read`, bukan oleh GET.
               example: 120
+            updatedAt:
+              type: string
+              format: date-time
+              description: Diperbarui setiap kali admin menyimpan perubahan.
+              example: "2026-01-12T00:00:00.000Z"
 
-    Paginasi:
+    ArticleInput:
       type: object
+      additionalProperties: false
+      required: [title, category, content]
       properties:
-        halaman:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: Beasiswa PPM 2026 Dibuka
+        category:
+          type: string
+          minLength: 1
+          description: Slug kategori yang sudah ada
+          example: akademik
+        summary:
+          type: string
+          maxLength: 300
+          example: Pendaftaran beasiswa PPM tahun 2026 dibuka mulai Januari.
+        content:
+          type: string
+          minLength: 1
+          description: Markdown. Server menyanitasi isi sebelum menyimpan.
+          example: "Pendaftaran dibuka sampai 31 Januari 2026."
+
+    ArticleResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: "#/components/schemas/Article"
+
+    ArticleListResponse:
+      type: object
+      required: [success, data, pagination]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArticleSummary"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+
+    ReadCountResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          required: [readCount]
+          properties:
+            readCount:
+              type: integer
+              example: 121
+
+    Pagination:
+      type: object
+      required: [page, perPage, total, totalPages]
+      properties:
+        page:
           type: integer
           example: 1
-        perHalaman:
+        perPage:
           type: integer
           example: 10
         total:
           type: integer
           example: 1
-        totalHalaman:
+        totalPages:
           type: integer
+          description: Bernilai 0 bila tidak ada artikel yang cocok.
           example: 1
