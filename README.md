@@ -53,6 +53,11 @@ Detail lengkap ada di [CONTRIBUTING.md](CONTRIBUTING.md). Ringkasannya:
 3. Kerjakan, commit, lalu push: `git push origin fitur/nama-fitur`
 4. Buka Pull Request, tunggu review minimal 1 orang, baru merge ke `main`
 
+## API
+
+- Dokumentasi interaktif (Swagger UI): [http://localhost:3000/docs](http://localhost:3000/docs)
+- Spesifikasi OpenAPI: [`public/openapi.yaml`](public/openapi.yaml)
+
 ## Environment Variables
 
 Belum ada. Akan ditambahkan bersamaan dengan setup database (Task 2), dan hanya `.env.example` yang di-commit.

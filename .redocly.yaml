@@ -1,0 +1,3 @@
+rules:
+  # Server localhost memang disengaja untuk development sprint 1.
+  no-server-example.com: off
