@@ -21,6 +21,9 @@ export default function DocsPage() {
       if (!document.querySelector("link[data-swagger-ui-css]")) {
         const css = document.createElement("link");
         css.rel = "stylesheet";
+        css.integrity =
+          "sha384-++DMKo1369T5pxDNqojF1F91bYxYiT1N7b1M15a7oCzEodfljztKlApQoH6eQSKI";
+        css.crossOrigin = "anonymous";
         css.href = "https://unpkg.com/swagger-ui-dist@5.28.1/swagger-ui.css";
         css.setAttribute("data-swagger-ui-css", "");
         document.head.appendChild(css);
@@ -29,6 +32,9 @@ export default function DocsPage() {
       if (!window.SwaggerUIBundle) {
         await new Promise<void>((resolve, reject) => {
           const script = document.createElement("script");
+          script.integrity =
+            "sha384-V0LcGJnXivolzjbV55cqaZg4XvvI1Z8RFYZchJFl9ZHgQV1ek+/g0LS3jjN/1Azs";
+          script.crossOrigin = "anonymous";
           script.src =
             "https://unpkg.com/swagger-ui-dist@5.28.1/swagger-ui-bundle.js";
           script.onload = () => resolve();

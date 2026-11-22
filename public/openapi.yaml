@@ -1,19 +1,26 @@
 openapi: 3.1.0
 info:
   title: Wiki UMK API
-  version: 0.1.0
+  version: 0.2.0
   license:
     name: MIT
     identifier: MIT
   description: |
-    REST API untuk Wiki UMK — platform informasi akademik dan forum diskusi
+    REST API untuk Wiki UMK, platform informasi akademik dan forum diskusi
     mahasiswa Universitas Muria Kudus.
 
-    **Standar respons:** semua endpoint mengembalikan `{ "sukses": true, "data": ... }`
-    untuk berhasil, atau `{ "sukses": false, "pesan": "..." }` untuk gagal.
+    **Standar respons:** semua endpoint mengembalikan
+    `{ "sukses": true, "data": ... }` untuk berhasil, atau
+    `{ "sukses": false, "pesan": "..." }` untuk gagal. Endpoint daftar
+    menambahkan `paginasi` sebagai saudara `data`.
 
-    **Status Sprint 1:** health, auth, kategori, dan baca artikel.
-    Endpoint forum, komentar, moderasi admin, dan CRUD artikel menyusul di sprint berikutnya.
+    **Isi artikel** disimpan sebagai markdown. Server menyanitasi isi sebelum
+    menyimpan dan sebelum mengirim, jadi klien tidak menerima HTML mentah
+    dari pengguna.
+
+    **Status Sprint 1:** health, auth, kategori, baca artikel, jumlah dibaca,
+    dan CRUD artikel oleh admin. Endpoint forum, komentar, dan moderasi
+    menyusul di sprint berikutnya.
 servers:
   - url: http://localhost:3000/api
     description: Development
@@ -26,7 +33,7 @@ tags:
   - name: Kategori
     description: Kategori artikel wiki
   - name: Artikel
-    description: Baca artikel wiki
+    description: Baca artikel wiki dan pengelolaan oleh admin
 
 paths:
   /health:
@@ -41,12 +48,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ResponsSehat"
-        "405":
-          description: Method selain GET tidak diizinkan
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponsGagal"
+        "500":
+          $ref: "#/components/responses/GalatServer500"
 
   /auth/register:
     post:
@@ -59,19 +62,23 @@ paths:
           application/json:
             schema:
               type: object
+              additionalProperties: false
               required: [nama, email, password]
               properties:
                 nama:
                   type: string
                   minLength: 1
+                  maxLength: 100
                   example: Budi Santoso
                 email:
                   type: string
                   format: email
+                  maxLength: 254
                   example: budi@std.umk.ac.id
                 password:
                   type: string
                   minLength: 8
+                  maxLength: 72
                   example: rahasia123
       responses:
         "201":
@@ -88,14 +95,7 @@ paths:
                   email: budi@std.umk.ac.id
                   peran: MAHASISWA
         "400":
-          description: Validasi gagal (field kosong, password terlalu pendek, format email salah)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponsGagal"
-              example:
-                sukses: false
-                pesan: Password minimal 8 karakter
+          $ref: "#/components/responses/Gagal400"
         "409":
           description: Email sudah terdaftar
           content:
@@ -105,12 +105,16 @@ paths:
               example:
                 sukses: false
                 pesan: Email sudah terdaftar
+        "500":
+          $ref: "#/components/responses/GalatServer500"
 
   /auth/login:
     post:
       tags: [Auth]
       summary: Login dan mulai sesi
-      description: Berhasil login akan menyetel cookie sesi (httpOnly).
+      description: |
+        Berhasil login menyetel cookie sesi dengan atribut
+        `HttpOnly; Secure; SameSite=Lax; Path=/`.
       operationId: login
       requestBody:
         required: true
@@ -118,6 +122,7 @@ paths:
           application/json:
             schema:
               type: object
+              additionalProperties: false
               required: [email, password]
               properties:
                 email:
@@ -132,7 +137,7 @@ paths:
           description: Login berhasil, cookie sesi di-set
           headers:
             Set-Cookie:
-              description: Sesi pengguna (httpOnly, SameSite)
+              description: Sesi pengguna (HttpOnly; Secure; SameSite=Lax; Path=/)
               schema:
                 type: string
           content:
@@ -140,11 +145,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ResponsUser"
         "400":
-          description: Field email/password wajib diisi
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponsGagal"
+          $ref: "#/components/responses/Gagal400"
         "401":
           description: Email atau password salah
           content:
@@ -154,12 +155,16 @@ paths:
               example:
                 sukses: false
                 pesan: Email atau password salah
+        "500":
+          $ref: "#/components/responses/GalatServer500"
 
   /auth/logout:
     post:
       tags: [Auth]
       summary: Keluar dari sesi
       operationId: logout
+      security:
+        - cookieAuth: []
       responses:
         "200":
           description: Sesi dihapus
@@ -172,14 +177,9 @@ paths:
                 data:
                   pesan: Berhasil keluar
         "401":
-          description: Belum login
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponsGagal"
-              example:
-                sukses: false
-                pesan: Belum login
+          $ref: "#/components/responses/BelumLogin401"
+        "500":
+          $ref: "#/components/responses/GalatServer500"
 
   /auth/me:
     get:
@@ -196,14 +196,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ResponsUser"
         "401":
-          description: Belum login / sesi habis
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponsGagal"
-              example:
-                sukses: false
-                pesan: Belum login
+          $ref: "#/components/responses/BelumLogin401"
+        "500":
+          $ref: "#/components/responses/GalatServer500"
 
   /kategori:
     get:
@@ -216,15 +211,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  sukses:
-                    type: boolean
-                    example: true
-                  data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Kategori"
+                $ref: "#/components/schemas/ResponsDaftarKategori"
               example:
                 sukses: true
                 data:
@@ -234,12 +221,8 @@ paths:
                   - slug: organisasi
                     nama: Organisasi
                     jumlahArtikel: 1
-        "405":
-          description: Method selain GET tidak diizinkan
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponsGagal"
+        "500":
+          $ref: "#/components/responses/GalatServer500"
 
   /artikel:
     get:
@@ -247,53 +230,17 @@ paths:
       summary: Daftar artikel (dengan filter dan pencarian)
       operationId: getArtikel
       parameters:
-        - name: kategori
-          in: query
-          required: false
-          description: Filter berdasarkan slug kategori
-          schema:
-            type: string
-          example: akademik
-        - name: q
-          in: query
-          required: false
-          description: Kata kunci pencarian (judul/ringkasan)
-          schema:
-            type: string
-          example: beasiswa
-        - name: halaman
-          in: query
-          required: false
-          description: Nomor halaman (mulai dari 1)
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
-        - name: perHalaman
-          in: query
-          required: false
-          description: Jumlah artikel per halaman
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 10
+        - $ref: "#/components/parameters/KategoriFilter"
+        - $ref: "#/components/parameters/KataKunci"
+        - $ref: "#/components/parameters/Halaman"
+        - $ref: "#/components/parameters/PerHalaman"
       responses:
         "200":
           description: Daftar artikel + info paginasi
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  sukses:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/ArtikelRingkas"
-                  paginasi:
-                    $ref: "#/components/schemas/Paginasi"
+                $ref: "#/components/schemas/ResponsDaftarArtikel"
               example:
                 sukses: true
                 data:
@@ -312,49 +259,143 @@ paths:
                   total: 1
                   totalHalaman: 1
         "400":
-          description: Parameter tidak valid (mis. halaman < 1 atau perHalaman > 50)
+          $ref: "#/components/responses/Gagal400"
+        "500":
+          $ref: "#/components/responses/GalatServer500"
+    post:
+      tags: [Artikel]
+      summary: Buat artikel baru (khusus admin)
+      operationId: createArtikel
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArtikelInput"
+      responses:
+        "201":
+          description: Artikel dibuat
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResponsGagal"
-              example:
-                sukses: false
-                pesan: Parameter tidak valid
+                $ref: "#/components/schemas/ResponsArtikel"
+        "400":
+          $ref: "#/components/responses/Gagal400"
+        "401":
+          $ref: "#/components/responses/BelumLogin401"
+        "403":
+          $ref: "#/components/responses/Terlarang403"
+        "500":
+          $ref: "#/components/responses/GalatServer500"
 
   /artikel/{slug}:
     get:
       tags: [Artikel]
       summary: Detail artikel berdasarkan slug
+      description: |
+        Tidak menambah `jumlahDibaca`. Hitungan pembaca dinaikkan lewat
+        `POST /artikel/{slug}/baca`, supaya respons ini tetap bisa di-cache.
       operationId: getArtikelBySlug
       parameters:
-        - name: slug
-          in: path
-          required: true
-          description: Slug unik artikel
-          schema:
-            type: string
-          example: beasiswa-ppm-2026
+        - $ref: "#/components/parameters/Slug"
       responses:
         "200":
           description: Detail artikel
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  sukses:
-                    type: boolean
-                  data:
-                    $ref: "#/components/schemas/Artikel"
+                $ref: "#/components/schemas/ResponsArtikel"
         "404":
-          description: Artikel tidak ditemukan
+          $ref: "#/components/responses/TidakDitemukan404"
+        "500":
+          $ref: "#/components/responses/GalatServer500"
+    put:
+      tags: [Artikel]
+      summary: Ubah artikel (khusus admin)
+      description: Mengganti seluruh isi artikel dan memperbarui `tanggalDiperbarui`.
+      operationId: updateArtikel
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Slug"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArtikelInput"
+      responses:
+        "200":
+          description: Artikel diperbarui
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResponsGagal"
+                $ref: "#/components/schemas/ResponsArtikel"
+        "400":
+          $ref: "#/components/responses/Gagal400"
+        "401":
+          $ref: "#/components/responses/BelumLogin401"
+        "403":
+          $ref: "#/components/responses/Terlarang403"
+        "404":
+          $ref: "#/components/responses/TidakDitemukan404"
+        "500":
+          $ref: "#/components/responses/GalatServer500"
+    delete:
+      tags: [Artikel]
+      summary: Hapus artikel (khusus admin)
+      operationId: deleteArtikel
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Slug"
+      responses:
+        "200":
+          description: Artikel dihapus
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponsKosong"
               example:
-                sukses: false
-                pesan: Artikel tidak ditemukan
+                sukses: true
+                data:
+                  pesan: Artikel dihapus
+        "401":
+          $ref: "#/components/responses/BelumLogin401"
+        "403":
+          $ref: "#/components/responses/Terlarang403"
+        "404":
+          $ref: "#/components/responses/TidakDitemukan404"
+        "500":
+          $ref: "#/components/responses/GalatServer500"
+
+  /artikel/{slug}/baca:
+    post:
+      tags: [Artikel]
+      summary: Catat satu kali baca artikel
+      description: |
+        Dipanggil halaman detail setelah artikel tampil. Operasi terpisah
+        supaya `GET /artikel/{slug}` tetap dapat di-cache.
+      operationId: catatBacaArtikel
+      parameters:
+        - $ref: "#/components/parameters/Slug"
+      responses:
+        "200":
+          description: Jumlah baca terbaru
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponsJumlahDibaca"
+              example:
+                sukses: true
+                data:
+                  jumlahDibaca: 121
+        "404":
+          $ref: "#/components/responses/TidakDitemukan404"
+        "500":
+          $ref: "#/components/responses/GalatServer500"
 
 components:
   securitySchemes:
@@ -362,11 +403,105 @@ components:
       type: apiKey
       in: cookie
       name: session
-      description: Cookie sesi yang diset saat login (httpOnly)
+      description: Cookie sesi yang diset saat login (HttpOnly; Secure; SameSite=Lax)
+
+  parameters:
+    Slug:
+      name: slug
+      in: path
+      required: true
+      description: Slug unik artikel
+      schema:
+        type: string
+      example: beasiswa-ppm-2026
+    KategoriFilter:
+      name: kategori
+      in: query
+      required: false
+      description: Filter berdasarkan slug kategori
+      schema:
+        type: string
+      example: akademik
+    KataKunci:
+      name: q
+      in: query
+      required: false
+      description: Kata kunci pencarian pada judul dan ringkasan
+      schema:
+        type: string
+        maxLength: 100
+      example: beasiswa
+    Halaman:
+      name: halaman
+      in: query
+      required: false
+      description: Nomor halaman (mulai dari 1)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PerHalaman:
+      name: perHalaman
+      in: query
+      required: false
+      description: Jumlah artikel per halaman
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 10
+
+  responses:
+    Gagal400:
+      description: Validasi gagal atau parameter tidak valid
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ResponsGagal"
+          example:
+            sukses: false
+            pesan: Judul wajib diisi
+    BelumLogin401:
+      description: Belum login atau sesi habis
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ResponsGagal"
+          example:
+            sukses: false
+            pesan: Belum login
+    Terlarang403:
+      description: Sudah login tetapi bukan admin
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ResponsGagal"
+          example:
+            sukses: false
+            pesan: Hanya admin yang boleh mengubah artikel
+    TidakDitemukan404:
+      description: Artikel tidak ditemukan
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ResponsGagal"
+          example:
+            sukses: false
+            pesan: Artikel tidak ditemukan
+    GalatServer500:
+      description: Kesalahan server atau koneksi database
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ResponsGagal"
+          example:
+            sukses: false
+            pesan: Terjadi kesalahan pada server
 
   schemas:
     ResponsSehat:
       type: object
+      required: [sukses, data]
       properties:
         sukses:
           type: boolean
@@ -377,6 +512,7 @@ components:
 
     ResponsGagal:
       type: object
+      required: [sukses, pesan]
       properties:
         sukses:
           type: boolean
@@ -387,15 +523,21 @@ components:
 
     ResponsKosong:
       type: object
+      required: [sukses, data]
       properties:
         sukses:
           type: boolean
           example: true
         data:
           type: object
+          properties:
+            pesan:
+              type: string
+              example: Berhasil keluar
 
     ResponsUser:
       type: object
+      required: [sukses, data]
       properties:
         sukses:
           type: boolean
@@ -405,6 +547,7 @@ components:
 
     User:
       type: object
+      required: [id, nama, email, peran]
       properties:
         id:
           type: string
@@ -426,6 +569,7 @@ components:
 
     Kategori:
       type: object
+      required: [slug, nama, jumlahArtikel]
       properties:
         slug:
           type: string
@@ -437,8 +581,40 @@ components:
           type: integer
           example: 3
 
+    ResponsDaftarKategori:
+      type: object
+      required: [sukses, data]
+      properties:
+        sukses:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Kategori"
+
+    KategoriRingkas:
+      type: object
+      required: [slug, nama]
+      properties:
+        slug:
+          type: string
+          example: akademik
+        nama:
+          type: string
+          example: Akademik
+
+    Penulis:
+      type: object
+      required: [nama]
+      properties:
+        nama:
+          type: string
+          example: Admin
+
     ArtikelRingkas:
       type: object
+      required: [slug, judul, ringkasan, kategori, penulis, tanggalDibuat]
       properties:
         slug:
           type: string
@@ -450,20 +626,9 @@ components:
           type: string
           example: Pendaftaran beasiswa PPM tahun 2026 dibuka mulai Januari.
         kategori:
-          type: object
-          properties:
-            slug:
-              type: string
-              example: akademik
-            nama:
-              type: string
-              example: Akademik
+          $ref: "#/components/schemas/KategoriRingkas"
         penulis:
-          type: object
-          properties:
-            nama:
-              type: string
-              example: Admin
+          $ref: "#/components/schemas/Penulis"
         tanggalDibuat:
           type: string
           format: date-time
@@ -473,16 +638,92 @@ components:
       allOf:
         - $ref: "#/components/schemas/ArtikelRingkas"
         - type: object
+          required: [isi, jumlahDibaca, tanggalDiperbarui]
           properties:
             isi:
               type: string
-              example: "<p>Isi lengkap artikel dalam HTML/markdown...</p>"
+              description: |
+                Isi artikel dalam markdown. Server menyanitasi isi sebelum
+                disimpan dan sebelum dikirim, sehingga tag HTML dari pengguna
+                tidak tersimpan sebagai HTML mentah.
+              example: "Pendaftaran dibuka sampai 31 Januari 2026."
             jumlahDibaca:
               type: integer
+              description: Dinaikkan oleh `POST /artikel/{slug}/baca`, bukan oleh GET.
               example: 120
+            tanggalDiperbarui:
+              type: string
+              format: date-time
+              description: Diperbarui setiap kali admin menyimpan perubahan.
+              example: "2026-01-12T00:00:00.000Z"
+
+    ArtikelInput:
+      type: object
+      additionalProperties: false
+      required: [judul, kategori, isi]
+      properties:
+        judul:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: Beasiswa PPM 2026 Dibuka
+        kategori:
+          type: string
+          minLength: 1
+          description: Slug kategori yang sudah ada
+          example: akademik
+        ringkasan:
+          type: string
+          maxLength: 300
+          example: Pendaftaran beasiswa PPM tahun 2026 dibuka mulai Januari.
+        isi:
+          type: string
+          minLength: 1
+          description: Markdown. Server menyanitasi sebelum menyimpan.
+          example: "Pendaftaran dibuka sampai 31 Januari 2026."
+
+    ResponsArtikel:
+      type: object
+      required: [sukses, data]
+      properties:
+        sukses:
+          type: boolean
+          example: true
+        data:
+          $ref: "#/components/schemas/Artikel"
+
+    ResponsDaftarArtikel:
+      type: object
+      required: [sukses, data, paginasi]
+      properties:
+        sukses:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArtikelRingkas"
+        paginasi:
+          $ref: "#/components/schemas/Paginasi"
+
+    ResponsJumlahDibaca:
+      type: object
+      required: [sukses, data]
+      properties:
+        sukses:
+          type: boolean
+          example: true
+        data:
+          type: object
+          required: [jumlahDibaca]
+          properties:
+            jumlahDibaca:
+              type: integer
+              example: 121
 
     Paginasi:
       type: object
+      required: [halaman, perHalaman, total, totalHalaman]
       properties:
         halaman:
           type: integer
@@ -495,4 +736,5 @@ components:
           example: 1
         totalHalaman:
           type: integer
+          description: 0 bila tidak ada artikel yang cocok.
           example: 1
