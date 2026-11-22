@@ -1,49 +1,49 @@
 openapi: 3.1.0
 info:
   title: Wiki UMK API
-  version: 0.3.0
+  version: 0.4.0
   license:
     name: MIT
     identifier: MIT
   description: |
-    REST API for Wiki UMK, the academic information and student discussion
-    platform of Universitas Muria Kudus.
+    REST API untuk Wiki UMK, platform informasi akademik dan forum diskusi
+    mahasiswa Universitas Muria Kudus.
 
-    **Response envelope:** every endpoint returns
-    `{ "success": true, "data": ... }` on success, or
-    `{ "success": false, "message": "..." }` on failure. List endpoints add
-    a `pagination` object next to `data`.
+    **Amplop respons:** semua endpoint mengembalikan
+    `{ "success": true, "data": ... }` saat berhasil, atau
+    `{ "success": false, "message": "..." }` saat gagal. Endpoint daftar
+    menambahkan objek `pagination` di samping `data`.
 
-    **Article content** is stored as markdown. The server sanitizes content
-    before saving and before sending, so clients never receive raw HTML from
-    a user.
+    **Isi artikel** disimpan sebagai markdown. Server menyanitasi isi sebelum
+    menyimpan dan sebelum mengirim, jadi klien tidak menerima HTML mentah
+    dari pengguna.
 
-    **Sprint 1 scope:** health, auth, categories, article reading, read
-    count, and article management by admins. Forum, comment, and moderation
-    endpoints follow in later sprints.
+    **Cakupan Sprint 1:** health, auth, kategori, baca artikel, jumlah dibaca,
+    dan pengelolaan artikel oleh admin. Endpoint forum, komentar, dan
+    moderasi menyusul di sprint berikutnya.
 servers:
   - url: http://localhost:3000/api
-    description: Development
+    description: Lingkungan pengembangan
 security: []
 tags:
   - name: Health
-    description: API health check
+    description: Pemeriksaan kesehatan API
   - name: Auth
-    description: User authentication (register, login, logout, session)
+    description: Autentikasi pengguna (register, login, logout, sesi)
   - name: Categories
-    description: Wiki article categories
+    description: Kategori artikel wiki
   - name: Articles
-    description: Read wiki articles and manage them as an admin
+    description: Baca artikel wiki dan pengelolaannya oleh admin
 
 paths:
   /health:
     get:
       tags: [Health]
-      summary: Check whether the API is alive
+      summary: Cek apakah API hidup
       operationId: getHealth
       responses:
         "200":
-          description: API is running
+          description: API berjalan
           content:
             application/json:
               schema:
@@ -54,7 +54,7 @@ paths:
   /auth/register:
     post:
       tags: [Auth]
-      summary: Register a new account
+      summary: Daftar akun baru
       operationId: register
       requestBody:
         required: true
@@ -82,7 +82,7 @@ paths:
                   example: rahasia123
       responses:
         "201":
-          description: Account created
+          description: Akun berhasil dibuat
           content:
             application/json:
               schema:
@@ -97,23 +97,23 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
         "409":
-          description: Email is already registered
+          description: Email sudah terdaftar
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
                 success: false
-                message: Email is already registered
+                message: Email sudah terdaftar
         "500":
           $ref: "#/components/responses/InternalServerError"
 
   /auth/login:
     post:
       tags: [Auth]
-      summary: Log in and start a session
+      summary: Login dan mulai sesi
       description: |
-        A successful login sets the session cookie with
+        Login yang berhasil menyetel cookie sesi dengan atribut
         `HttpOnly; Secure; SameSite=Lax; Path=/`.
       operationId: login
       requestBody:
@@ -134,10 +134,10 @@ paths:
                   example: rahasia123
       responses:
         "200":
-          description: Login succeeded and the session cookie is set
+          description: Login berhasil dan cookie sesi di-set
           headers:
             Set-Cookie:
-              description: Session cookie (HttpOnly; Secure; SameSite=Lax; Path=/)
+              description: Cookie sesi (HttpOnly; Secure; SameSite=Lax; Path=/)
               schema:
                 type: string
           content:
@@ -147,27 +147,27 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
-          description: Email or password is incorrect
+          description: Email atau password salah
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
                 success: false
-                message: Email or password is incorrect
+                message: Email atau password salah
         "500":
           $ref: "#/components/responses/InternalServerError"
 
   /auth/logout:
     post:
       tags: [Auth]
-      summary: End the session
+      summary: Keluar dari sesi
       operationId: logout
       security:
         - cookieAuth: []
       responses:
         "200":
-          description: Session ended
+          description: Sesi diakhiri
           content:
             application/json:
               schema:
@@ -175,7 +175,7 @@ paths:
               example:
                 success: true
                 data:
-                  message: Logged out
+                  message: Berhasil keluar
         "401":
           $ref: "#/components/responses/Unauthorized"
         "500":
@@ -184,13 +184,13 @@ paths:
   /auth/me:
     get:
       tags: [Auth]
-      summary: Get the currently logged-in user
+      summary: Ambil data pengguna yang sedang login
       operationId: getMe
       security:
         - cookieAuth: []
       responses:
         "200":
-          description: Current user
+          description: Pengguna yang sedang login
           content:
             application/json:
               schema:
@@ -203,11 +203,11 @@ paths:
   /categories:
     get:
       tags: [Categories]
-      summary: List article categories
+      summary: Daftar kategori artikel
       operationId: getCategories
       responses:
         "200":
-          description: Category list
+          description: Daftar kategori
           content:
             application/json:
               schema:
@@ -227,7 +227,7 @@ paths:
   /articles:
     get:
       tags: [Articles]
-      summary: List articles with filtering and search
+      summary: Daftar artikel dengan filter dan pencarian
       operationId: getArticles
       parameters:
         - $ref: "#/components/parameters/CategoryFilter"
@@ -236,7 +236,7 @@ paths:
         - $ref: "#/components/parameters/PerPage"
       responses:
         "200":
-          description: Article list with pagination info
+          description: Daftar artikel beserta info paginasi
           content:
             application/json:
               schema:
@@ -264,7 +264,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
     post:
       tags: [Articles]
-      summary: Create an article (admin only)
+      summary: Buat artikel baru (khusus admin)
       operationId: createArticle
       security:
         - cookieAuth: []
@@ -276,7 +276,7 @@ paths:
               $ref: "#/components/schemas/ArticleInput"
       responses:
         "201":
-          description: Article created
+          description: Artikel dibuat
           content:
             application/json:
               schema:
@@ -293,16 +293,16 @@ paths:
   /articles/{slug}:
     get:
       tags: [Articles]
-      summary: Get an article by slug
+      summary: Detail artikel berdasarkan slug
       description: |
-        Does not increment `readCount`. The counter is increased through
-        `POST /articles/{slug}/read` so this response stays cacheable.
+        Tidak menambah `readCount`. Hitungan pembaca dinaikkan lewat
+        `POST /articles/{slug}/read` supaya respons ini tetap bisa di-cache.
       operationId: getArticleBySlug
       parameters:
         - $ref: "#/components/parameters/Slug"
       responses:
         "200":
-          description: Article detail
+          description: Detail artikel
           content:
             application/json:
               schema:
@@ -313,8 +313,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
     put:
       tags: [Articles]
-      summary: Update an article (admin only)
-      description: Replaces the whole article and updates `updatedAt`.
+      summary: Ubah artikel (khusus admin)
+      description: Mengganti seluruh isi artikel dan memperbarui `updatedAt`.
       operationId: updateArticle
       security:
         - cookieAuth: []
@@ -328,7 +328,7 @@ paths:
               $ref: "#/components/schemas/ArticleInput"
       responses:
         "200":
-          description: Article updated
+          description: Artikel diperbarui
           content:
             application/json:
               schema:
@@ -345,7 +345,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
     delete:
       tags: [Articles]
-      summary: Delete an article (admin only)
+      summary: Hapus artikel (khusus admin)
       operationId: deleteArticle
       security:
         - cookieAuth: []
@@ -353,7 +353,7 @@ paths:
         - $ref: "#/components/parameters/Slug"
       responses:
         "200":
-          description: Article deleted
+          description: Artikel dihapus
           content:
             application/json:
               schema:
@@ -361,7 +361,7 @@ paths:
               example:
                 success: true
                 data:
-                  message: Article deleted
+                  message: Artikel dihapus
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
@@ -374,16 +374,16 @@ paths:
   /articles/{slug}/read:
     post:
       tags: [Articles]
-      summary: Record one article read
+      summary: Catat satu kali baca artikel
       description: |
-        Called by the detail page after the article renders. It is a separate
-        operation so that `GET /articles/{slug}` stays cacheable.
+        Dipanggil halaman detail setelah artikel tampil. Operasi terpisah
+        supaya `GET /articles/{slug}` tetap dapat di-cache.
       operationId: recordArticleRead
       parameters:
         - $ref: "#/components/parameters/Slug"
       responses:
         "200":
-          description: Latest read count
+          description: Jumlah baca terbaru
           content:
             application/json:
               schema:
@@ -403,14 +403,14 @@ components:
       type: apiKey
       in: cookie
       name: session
-      description: Session cookie set at login (HttpOnly; Secure; SameSite=Lax)
+      description: Cookie sesi yang diset saat login (HttpOnly; Secure; SameSite=Lax)
 
   parameters:
     Slug:
       name: slug
       in: path
       required: true
-      description: Unique article slug
+      description: Slug unik artikel
       schema:
         type: string
       example: beasiswa-ppm-2026
@@ -418,7 +418,7 @@ components:
       name: category
       in: query
       required: false
-      description: Filter by category slug
+      description: Filter berdasarkan slug kategori
       schema:
         type: string
       example: akademik
@@ -426,7 +426,7 @@ components:
       name: q
       in: query
       required: false
-      description: Search keyword in title and summary
+      description: Kata kunci pencarian pada judul dan ringkasan
       schema:
         type: string
         maxLength: 100
@@ -435,7 +435,7 @@ components:
       name: page
       in: query
       required: false
-      description: Page number, starting at 1
+      description: Nomor halaman, mulai dari 1
       schema:
         type: integer
         minimum: 1
@@ -444,7 +444,7 @@ components:
       name: perPage
       in: query
       required: false
-      description: Number of articles per page
+      description: Jumlah artikel per halaman
       schema:
         type: integer
         minimum: 1
@@ -453,50 +453,50 @@ components:
 
   responses:
     BadRequest:
-      description: Validation failed or a parameter is invalid
+      description: Validasi gagal atau parameter tidak valid
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
           example:
             success: false
-            message: Title is required
+            message: Judul artikel wajib diisi
     Unauthorized:
-      description: Not logged in, or the session expired
+      description: Belum login atau sesi sudah berakhir
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
           example:
             success: false
-            message: Not logged in
+            message: Belum login
     Forbidden:
-      description: Logged in, but the account is not an admin
+      description: Sudah login, tetapi akunnya bukan admin
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
           example:
             success: false
-            message: Only admins can modify articles
+            message: Hanya admin yang boleh mengubah artikel
     NotFound:
-      description: Article not found
+      description: Artikel tidak ditemukan
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
           example:
             success: false
-            message: Article not found
+            message: Artikel tidak ditemukan
     InternalServerError:
-      description: Server error or database connection failure
+      description: Kesalahan server atau koneksi database gagal
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
           example:
             success: false
-            message: Internal server error
+            message: Terjadi kesalahan pada server
 
   schemas:
     HealthResponse:
@@ -519,7 +519,7 @@ components:
           example: false
         message:
           type: string
-          example: Internal server error
+          example: Terjadi kesalahan pada server
 
     MessageResponse:
       type: object
@@ -534,7 +534,7 @@ components:
           properties:
             message:
               type: string
-              example: Logged out
+              example: Berhasil keluar
 
     UserResponse:
       type: object
@@ -644,18 +644,18 @@ components:
             content:
               type: string
               description: |
-                Article body in markdown. The server sanitizes it before
-                saving and before sending, so HTML tags from a user are never
-                stored as raw HTML.
+                Isi artikel dalam markdown. Server menyanitasi isi sebelum
+                menyimpan dan sebelum mengirim, sehingga tag HTML dari
+                pengguna tidak tersimpan sebagai HTML mentah.
               example: "Pendaftaran dibuka sampai 31 Januari 2026."
             readCount:
               type: integer
-              description: Incremented by `POST /articles/{slug}/read`, not by GET.
+              description: Dinaikkan oleh `POST /articles/{slug}/read`, bukan oleh GET.
               example: 120
             updatedAt:
               type: string
               format: date-time
-              description: Updated every time an admin saves a change.
+              description: Diperbarui setiap kali admin menyimpan perubahan.
               example: "2026-01-12T00:00:00.000Z"
 
     ArticleInput:
@@ -671,7 +671,7 @@ components:
         category:
           type: string
           minLength: 1
-          description: Slug of an existing category
+          description: Slug kategori yang sudah ada
           example: akademik
         summary:
           type: string
@@ -680,7 +680,7 @@ components:
         content:
           type: string
           minLength: 1
-          description: Markdown. The server sanitizes it before saving.
+          description: Markdown. Server menyanitasi isi sebelum menyimpan.
           example: "Pendaftaran dibuka sampai 31 Januari 2026."
 
     ArticleResponse:
@@ -737,5 +737,5 @@ components:
           example: 1
         totalPages:
           type: integer
-          description: Zero when no article matches the filter.
+          description: Bernilai 0 bila tidak ada artikel yang cocok.
           example: 1
