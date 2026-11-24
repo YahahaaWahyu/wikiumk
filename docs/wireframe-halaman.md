@@ -2,7 +2,9 @@
 
 Daftar halaman dan state yang perlu digambar desainer sebelum FE mulai. Sumbernya `public/openapi.yaml` versi 0.4.0 dan isi Sprint 1 (SCRUM-7 sampai 14, 31, 37 sampai 42). Halaman yang API-nya belum ada tidak masuk dokumen ini.
 
-Total: 8 halaman, 1 dialog, 11 komponen bersama.
+Total: 8 halaman, 1 dialog, 12 komponen bersama.
+
+Status 24 November 2026: `docs/wireframe/wikiumk-wireframe.figcraft` berisi 36 bingkai di 3 halaman. Bingkai yang sudah ada didaftar di [Isi berkas wireframe](#isi-berkas-wireframe). State yang disebut di bawah tetapi tidak ada di daftar itu belum digambar.
 
 ## Peta endpoint ke halaman
 
@@ -149,21 +151,36 @@ Isi: kalimat "Hapus artikel ini?", judul artikel, tombol "Batal" dan "Hapus". St
 
 Cukup satu wireframe per komponen, dipakai di semua halaman.
 
-| Komponen | Catatan |
-|---|---|
-| Navbar | tiga varian sesi: belum login, `STUDENT`, `ADMIN` (tambah tautan "Kelola artikel") |
-| Footer | statis, tanpa API |
-| Kartu artikel | judul, ringkasan, kategori, penulis, tanggal |
-| Chip kategori | nama dan jumlah artikel |
-| Paginasi | nomor halaman, tombol sebelumnya dan berikutnya nonaktif di ujung |
-| Skeleton | bentuk mengikuti isi yang ditunggu |
-| Banner error | pesan dan tombol "Coba lagi" |
-| Pesan error per field | di bawah kolom, merah, singkat |
-| Dialog sesi berakhir | muncul saat 401 di halaman admin, tombol ke `/login` |
-| Tombol memproses | nonaktif dan berputar saat menunggu |
-| Toast | "Artikel dibuat", "Artikel dihapus", "Berhasil keluar" |
+| Komponen | Berkas | Catatan |
+|---|---|---|
+| Navbar | `Navbar / desktop`, `Navbar / admin`, `Navbar / HP` | tiga varian sesi: belum login, `STUDENT`, `ADMIN` (tambah tautan "Kelola artikel") |
+| Footer | `Footer` | statis, tanpa API. Versi HP masih salinan, bukan instance |
+| Kartu artikel | `Kartu artikel` | judul, ringkasan, kategori, penulis, tanggal |
+| Chip kategori | `Chip kategori` | nama dan jumlah artikel |
+| Paginasi | `Paginasi` | nomor halaman, tombol sebelumnya dan berikutnya nonaktif di ujung |
+| Skeleton | `Kartu skeleton` | bentuk mengikuti isi yang ditunggu |
+| Banner error | `Banner gagal` | pesan dan tombol "Coba lagi" |
+| Pesan error per field | di dalam `/admin/artikel/baru (400: error per field)` | di bawah kolom, singkat |
+| Dialog sesi berakhir | `Sesi berakhir (401)` | muncul saat 401 di halaman admin, tombol ke `/login` |
+| Tombol memproses | **belum** | nonaktif dan berputar saat menunggu |
+| Toast | `Toast` | baru "Artikel dihapus", belum "Artikel dibuat" dan "Berhasil keluar" |
+| Dialog konfirmasi hapus | `Dialog konfirmasi hapus` | dipakai sebagai instance di `/admin (dialog hapus)` |
+
+Navbar, Footer, dan Dialog konfirmasi hapus adalah komponen FigCraft. Ubah di halaman `03 Komponen`, semua instance ikut berubah.
 
 Navbar perlu satu state lagi: `GET /auth/me` sedang dimuat. Jangan tampilkan tombol "Masuk" lalu berubah jadi nama pengguna, karena itu terlihat seperti kedipan.
+
+## Isi berkas wireframe
+
+Per 24 November 2026, `docs/wireframe/wikiumk-wireframe.figcraft` berisi 36 bingkai di 3 halaman.
+
+| Halaman | Bingkai |
+|---|---|
+| `01 Publik` | `/ (desktop)`, `/ (kosong: belum ada artikel)`, `/ (kosong: filter tidak cocok)`, `/ (memuat)`, `/ (gagal 500)`, `/artikel/[slug] (desktop)`, `/artikel/[slug] (404)`, `/login (desktop)`, `/login (401: email atau password salah)`, `/register (desktop)`, `/register (409: email sudah terdaftar)`, `404 halaman`, `/ (HP)`, `/artikel/[slug] (HP)`, `/login (HP)` |
+| `02 Admin` | `/admin (desktop)`, `/admin (kosong)`, `/admin (memuat)`, `/admin (dialog hapus)`, `/admin (403: bukan admin)`, `/admin/artikel/baru (desktop)`, `/admin/artikel/baru (400: error per field)`, `/admin/artikel/[slug]/ubah (desktop)`, `Sesi berakhir (401)` |
+| `03 Komponen` | `Navbar / desktop`, `Navbar / admin`, `Navbar / HP`, `Footer`, `Kartu artikel`, `Kartu skeleton`, `Chip kategori`, `Banner gagal`, `Paginasi`, `Toast`, `Dialog konfirmasi hapus`, `Tombol` |
+
+State yang tercantum di bagian halaman tetapi tidak muncul di tabel ini belum digambar. Daftar itu tetap jadi daftar kerja.
 
 ## Keputusan yang sudah diambil
 
