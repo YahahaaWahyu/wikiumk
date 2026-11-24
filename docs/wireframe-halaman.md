@@ -129,7 +129,7 @@ Isi form:
 
 State: normal, sedang menyimpan, 400 dengan error per field di bawah masing-masing kolom plus ringkasan di atas form, 401, 403, 500. Tombol "Batal" meminta konfirmasi bila sudah ada ketikan.
 
-Catatan: `ArticleInput` tidak punya field `slug`. Slug dibuat server dari judul, jadi form tidak perlu kolom slug. Di bawah kolom isi ada satu baris bantuan sintaks markdown: judul, tebal, daftar, dan tautan.
+Catatan: `ArticleInput` tidak punya field `slug`. Slug dibuat server dari judul, jadi form tidak perlu kolom slug. Kolom isi berbentuk editor: bar tab `Tulis` dan `Pratinjau`, toolbar tombol format dan urungkan-ulangi, area tulis, baris bawah `Markdown didukung`. Tab `Pratinjau` masih sebatas gambar karena render markdown butuh dependensi yang belum ada. Lampiran, sebutan, dan baris unggah tidak digambar karena `openapi.yaml` belum punya endpoint unggah.
 
 ### 8. Ubah artikel `/admin/artikel/[slug]/ubah`
 
@@ -190,7 +190,7 @@ State yang tercantum di bagian halaman tetapi tidak muncul di tabel ini belum di
 | K-2 | Tombol "Ubah" dan "Hapus" hanya di `/admin` | Satu tempat untuk aksi berbahaya, halaman publik tetap bersih |
 | K-3 | Admin memakai pencarian dan filter yang sama dengan beranda | Endpoint sama, tidak perlu komponen baru |
 | K-4 | Jumlah artikel per halaman tetap 10 | `perPage` bisa diubah lewat URL, tapi kontrol tambahan tidak diminta siapa pun |
-| K-5 | Editor isi berupa textarea markdown | Tanpa dependensi baru, sesuai isi API yang menerima markdown |
+| K-5 | Editor isi tetap textarea markdown, dibungkus bar tab dan toolbar | Tanpa dependensi baru, sesuai isi API yang menerima markdown |
 | K-6 | Setelah simpan, kembali ke `/admin` dengan toast | Admin biasanya menyunting beberapa artikel berturut-turut |
 | K-7 | Tabel admin tanpa kolom jumlah baca dan tanggal diperbarui | `ArticleSummary` tidak memuatnya, butuh N+1 permintaan |
 | K-8 | Slug ditampilkan statis di form ubah | `ArticleInput` tidak punya field slug, URL tidak ikut berubah |
