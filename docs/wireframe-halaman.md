@@ -49,7 +49,7 @@ State yang perlu digambar:
 7. **`/categories` gagal (500).** Chip kategori disembunyikan, daftar artikel tetap jalan. Jangan sampai satu endpoint gagal mematikan seluruh halaman.
 8. **Parameter tidak valid (400).** Terjadi kalau `page` di bawah 1 atau `perPage` di atas 50. Tampilkan pesan singkat dan kembalikan ke halaman 1.
 
-Catatan: `q`, `category`, dan `page` disimpan di query string supaya tautan bisa dibagikan dan tombol back berfungsi.
+Catatan: `q`, `category`, dan `page` disimpan di query string supaya tautan bisa dibagikan dan tombol back berfungsi. Di HP, chip kategori digeser mendatar karena tidak muat dalam satu layar.
 
 ### 2. Detail artikel `/artikel/[slug]`
 
@@ -112,7 +112,7 @@ State:
 2. **Dialog konfirmasi hapus.** Menyebut judul artikel, tombol "Batal" dan "Hapus". Lihat butir 9.
 3. **Hasil hapus.** Sukses (baris hilang, toast "Artikel dihapus"), 404 (artikel sudah dihapus orang lain, beri tahu lalu muat ulang daftar), 403, 401, 500.
 
-Catatan: `GET /articles` mengembalikan `ArticleSummary` yang tidak memuat `readCount` maupun `updatedAt`. Menampilkan dua kolom itu butuh satu permintaan detail per baris. Keputusan K-7 membuang kedua kolom.
+Catatan: `GET /articles` mengembalikan `ArticleSummary` yang tidak memuat `readCount` maupun `updatedAt`. Menampilkan dua kolom itu butuh satu permintaan detail per baris. Keputusan K-7 membuang kedua kolom. Judul di tabel adalah tautan ke halaman detail, sedangkan tombol "Ubah" dan "Hapus" muncul di setiap baris.
 
 ### 7. Buat artikel `/admin/artikel/baru`
 
@@ -129,7 +129,7 @@ Isi form:
 
 State: normal, sedang menyimpan, 400 dengan error per field di bawah masing-masing kolom plus ringkasan di atas form, 401, 403, 500. Tombol "Batal" meminta konfirmasi bila sudah ada ketikan.
 
-Catatan: `ArticleInput` tidak punya field `slug`. Slug dibuat server dari judul, jadi form tidak perlu kolom slug.
+Catatan: `ArticleInput` tidak punya field `slug`. Slug dibuat server dari judul, jadi form tidak perlu kolom slug. Di bawah kolom isi ada satu baris bantuan sintaks markdown: judul, tebal, daftar, dan tautan.
 
 ### 8. Ubah artikel `/admin/artikel/[slug]/ubah`
 
