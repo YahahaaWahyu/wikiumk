@@ -11,7 +11,18 @@ import type { ComponentProps } from "react";
  */
 
 function Anchor({ href = "", children, ...rest }: ComponentProps<"a">) {
-  if (href.startsWith("/")) {
+  // Frama (#...) harus memakai scroll bawaan browser, bukan navigasi router.
+  if (href.startsWith("#")) {
+    return (
+      <a href={href} {...rest}>
+        {children}
+      </a>
+    );
+  }
+  // Hanya tautan ber-prokol (https:, mailto:, ...) yang eksternal; path dan
+  // relatif adalah halaman sendiri dan lewat next/link.
+  const isExternal = /^[a-z][a-z0-9+.-]*:/i.test(href);
+  if (!isExternal) {
     return (
       <Link href={href} {...rest}>
         {children}
@@ -49,6 +60,36 @@ function Table({ children, ...rest }: ComponentProps<"table">) {
       </table>
     </div>
   );
+}
+
+/**
+ * Gambar artikel. Tanpa pasangan width+height browser tidak tahu rasionya, jadi
+ * ruangnya dipakai lebih dulu lewat kotak 3/2 agar teks di bawahnya tidak
+ * melompat saat gambar dimuat. `border` ikut disebut karena `border-line` hanya
+ * mengatur warna — lebar bingkainya datang dari preflight Tailwind.
+ */
+export function BlogImage({
+  src,
+  alt = "",
+  title,
+  width,
+  height,
+  ...rest
+}: ComponentProps<"img">) {
+  const img = (
+    <img
+      {...rest}
+      src={src}
+      alt={alt}
+      title={title}
+      width={width}
+      height={height}
+      loading="lazy"
+      className="border border-line"
+    />
+  );
+  if (width && height) return img;
+  return <span className="block aspect-[3/2]">{img}</span>;
 }
 
 export const mdxComponents = {
@@ -97,4 +138,6 @@ export const mdxComponents = {
     <td {...props} className="border border-line px-3 py-2" />
   ),
   code: Code,
+  img: BlogImage,
+  BlogImage,
 };
