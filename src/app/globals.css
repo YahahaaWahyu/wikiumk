@@ -1,26 +1,34 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Token wireframe: warna diambil langsung dari
+   docs/wireframe/wikiumk-wireframe.figcraft supaya halaman dan gambar sama.
+   Radius sengaja tidak dibuat token sendiri: 4px dan 6px sudah ada di skala
+   bawaan Tailwind (sm, md), sedangkan 10px ditulis rounded-[10px] supaya tidak
+   menimpa --radius-lg bawaan. */
+@theme {
+  --font-sans: var(--font-geist-sans, system-ui), sans-serif;
+
+  --color-paper: #ffffff;
+  --color-line: #c8c8c8;
+  --color-ink: #333333;
+  --color-muted: #6b6b6b;
+  --color-chrome: #f4f4f4;
+  --color-fill: #e6e6e6;
+  --color-dark: #3f3f3f;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* Satu cincin fokus untuk seluruh halaman supaya navigasi keyboard terlihat. */
+:focus-visible {
+  outline: 2px solid var(--color-dark);
+  outline-offset: 2px;
 }

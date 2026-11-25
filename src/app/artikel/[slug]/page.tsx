@@ -1,0 +1,68 @@
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
+import { articles, findArticle, formatDate } from "@/lib/data";
+import { renderMarkdown } from "@/lib/markdown";
+
+export function generateStaticParams() {
+  return articles.map((a) => ({ slug: a.slug }));
+}
+
+export default async function ArticlePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const article = findArticle(slug);
+  if (!article) notFound();
+
+  const wasUpdated = article.updatedAt !== article.createdAt;
+
+  return (
+    <>
+      <Navbar />
+      <main className="mx-auto w-full max-w-[800px] px-4 pt-12 lg:px-0">
+        <nav aria-label="Breadcrumb" className="text-[13px] leading-4 text-muted">
+          <Link href="/" className="hover:underline">
+            Beranda
+          </Link>
+          {" / "}
+          <Link href={`/?category=${article.category.slug}`} className="hover:underline">
+            {article.category.name}
+          </Link>
+          {" / "}
+          <span>{article.title}</span>
+        </nav>
+
+        <h1 className="mt-3 text-[24px] font-bold leading-[29px] lg:text-[32px] lg:leading-[39px]">
+          {article.title}
+        </h1>
+
+        <p className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px] leading-4 text-muted">
+          <span>{article.author.name}</span>
+          <span>- {formatDate(article.createdAt)}</span>
+          <span>- {article.readCount} dibaca</span>
+        </p>
+
+        <span className="mt-4 inline-block rounded-[10px] bg-chrome px-[10px] py-[3px] text-[11px] leading-[14px] text-muted">
+          {article.category.name}
+        </span>
+
+        <hr className="mt-6 border-line" />
+
+        <div className="mt-[34px] space-y-4 text-[15px] leading-[26px] [&_h2]:text-[18px] [&_h2]:font-bold [&_h3]:text-[15px] [&_h3]:font-bold [&_li]:mt-1 [&_ul]:list-disc [&_ul]:pl-5">
+          {renderMarkdown(article.content)}
+        </div>
+
+        {wasUpdated && (
+          <p className="mt-10 text-[11px] leading-[13px] text-muted">
+            Diperbarui {formatDate(article.updatedAt)}
+          </p>
+        )}
+      </main>
+      <Footer />
+    </>
+  );
+}
