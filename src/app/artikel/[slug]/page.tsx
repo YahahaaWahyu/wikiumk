@@ -1,9 +1,16 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { MDXRemote } from "next-mdx-remote/rsc";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import rehypePrettyCode from "rehype-pretty-code";
+import rehypeSlug from "rehype-slug";
+import "katex/dist/katex.min.css";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import { mdxComponents } from "@/components/mdx";
 import { articles, findArticle, formatDate } from "@/lib/data";
-import { renderMarkdown } from "@/lib/markdown";
 
 export function generateStaticParams() {
   return articles.map((a) => ({ slug: a.slug }));
@@ -14,6 +21,7 @@ export default async function ArticlePage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  "use cache";
   const { slug } = await params;
   const article = findArticle(slug);
   if (!article) notFound();
@@ -52,8 +60,22 @@ export default async function ArticlePage({
 
         <hr className="mt-6 border-line" />
 
-        <div className="mt-[34px] space-y-4 text-[15px] leading-[26px] [&_h2]:text-[18px] [&_h2]:font-bold [&_h3]:text-[15px] [&_h3]:font-bold [&_li]:mt-1 [&_ul]:list-disc [&_ul]:pl-5">
-          {renderMarkdown(article.content)}
+        <div className="mt-[34px] text-[15px] leading-[26px]">
+          <MDXRemote
+            source={article.content}
+            components={mdxComponents}
+            options={{
+              blockJS: false,
+              mdxOptions: {
+                remarkPlugins: [remarkGfm, remarkMath],
+                rehypePlugins: [
+                  rehypeSlug,
+                  [rehypePrettyCode, { theme: "github-light", keepBackground: false }],
+                  rehypeKatex,
+                ],
+              },
+            }}
+          />
         </div>
 
         {wasUpdated && (
