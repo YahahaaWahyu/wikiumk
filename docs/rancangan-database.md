@@ -4,6 +4,8 @@ Rancangan struktur database Wiki UMK untuk Sprint 1 dan cara mengkonfigurasikann
 
 Status: **rancangan disepakati, implementasi schema menyusul.** Sprint 1 baru menyiapkan koneksi (PostgreSQL + Prisma).
 
+> **Catatan autentikasi (26 Nov 2026):** login dan registrasi kini ditangani Better Auth dengan tabelnya sendiri — `user`, `session`, `account`, `verification` (lihat [autentikasi.md](autentikasi.md)). Tabel `users` di bawah masih rancangan untuk data domain (peran, status blokir) dan **belum dibuat**. Belum diputuskan apakah tabel `users` digabung dengan `user` milik Better Auth atau tetap terpisah.
+
 ## Pilihan teknologi
 
 | Komponen | Pilihan | Alasan |
