@@ -1,5 +1,8 @@
 import Link from "next/link";
-import type { ComponentProps } from "react";
+import { Children } from "react";
+import type { ComponentProps, ReactNode } from "react";
+import { CodeBlock } from "./CodeBlock";
+import { Mermaid } from "./Mermaid";
 
 /**
  * Peta elemen MDX untuk halaman artikel. Seluruh gaya prosa tinggal di sini,
@@ -92,6 +95,32 @@ export function BlogImage({
   return <span className="block aspect-[3/2]">{img}</span>;
 }
 
+/**
+ * Susun ulang teks mentah dari pohon React (string, angka, array, elemen).
+ * Teks inilah yang disalin tombol salin sekaligus isi chart untuk mermaid;
+ * pemisah baris ikut terbawa karena newline adalah simpul teks biasa.
+ */
+function extractText(node: ReactNode): string {
+  if (node == null || typeof node === "boolean") return "";
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(extractText).join("");
+  if (typeof node === "object" && "props" in node) {
+    const { children } = (node as { props: { children?: ReactNode } }).props;
+    return extractText(children);
+  }
+  return "";
+}
+
+/** `data-language` dari `<pre>` anak tunggal figure rehype-pretty-code. */
+function figureLanguage(children: ReactNode): string | undefined {
+  const child = Children.toArray(children).find(
+    (c) => typeof c === "object" && c !== null && "props" in c,
+  );
+  if (!child || typeof child !== "object" || !("props" in child)) return undefined;
+  const lang = (child as { props: Record<string, unknown> }).props["data-language"];
+  return typeof lang === "string" ? lang : undefined;
+}
+
 export const mdxComponents = {
   h1: (props: ComponentProps<"h1">) => (
     <h1 {...props} className="mt-8 text-[20px] font-bold leading-[27px]" />
@@ -140,4 +169,18 @@ export const mdxComponents = {
   code: Code,
   img: BlogImage,
   BlogImage,
+  // rehype-pretty-code membungkus tiap blok dalam <figure>; di sinilah cabang
+  // antara blok kode biasa dan diagram mermaid ditentukan.
+  figure: (props: ComponentProps<"figure">) => {
+    if (!("data-rehype-pretty-code-figure" in props)) return <figure {...props} />;
+    const rawText = extractText(props.children);
+    if (figureLanguage(props.children) === "mermaid") {
+      return <Mermaid chart={rawText} />;
+    }
+    return (
+      <CodeBlock rawText={rawText}>
+        <figure {...props} />
+      </CodeBlock>
+    );
+  },
 };

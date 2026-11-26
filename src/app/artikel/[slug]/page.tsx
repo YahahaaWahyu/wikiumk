@@ -70,7 +70,18 @@ export default async function ArticlePage({
                 remarkPlugins: [remarkGfm, remarkMath],
                 rehypePlugins: [
                   rehypeSlug,
-                  [rehypePrettyCode, { theme: "github-light", keepBackground: false }],
+                  [
+                    rehypePrettyCode,
+                    {
+                      theme: "github-light",
+                      keepBackground: false,
+                      // Fallback bahasa agar fence tanpa bahasa ikut diproses menjadi
+                      // <figure>; tanpa ini plugin melewatkannya (if (!lang) return) dan
+                      // kodenya jatuh ke gaya inline code. Bentuk objek dipakai agar
+                      // inline code tetap memakai default (""), bukan "plaintext".
+                      defaultLang: { block: "plaintext" },
+                    },
+                  ],
                   rehypeKatex,
                 ],
               },
