@@ -111,13 +111,19 @@ function extractText(node: ReactNode): string {
   return "";
 }
 
-/** `data-language` dari `<pre>` anak tunggal figure rehype-pretty-code. */
-function figureLanguage(children: ReactNode): string | undefined {
-  const child = Children.toArray(children).find(
-    (c) => typeof c === "object" && c !== null && "props" in c,
+/** Anak `<pre>` dari figure rehype-pretty-code; bisa berdampingan dengan figcaption. */
+function figurePre(children: ReactNode): ReactNode {
+  const pre = Children.toArray(children).find(
+    (c) => typeof c === "object" && c !== null && (c as { type?: unknown }).type === "pre",
   );
-  if (!child || typeof child !== "object" || !("props" in child)) return undefined;
-  const lang = (child as { props: Record<string, unknown> }).props["data-language"];
+  return pre ?? children;
+}
+
+/** `data-language` dari `<pre>` anak figure rehype-pretty-code. */
+function figureLanguage(children: ReactNode): string | undefined {
+  const pre = figurePre(children);
+  if (!pre || typeof pre !== "object" || !("props" in pre)) return undefined;
+  const lang = (pre as { props: Record<string, unknown> }).props["data-language"];
   return typeof lang === "string" ? lang : undefined;
 }
 
@@ -173,7 +179,8 @@ export const mdxComponents = {
   // antara blok kode biasa dan diagram mermaid ditentukan.
   figure: (props: ComponentProps<"figure">) => {
     if (!("data-rehype-pretty-code-figure" in props)) return <figure {...props} />;
-    const rawText = extractText(props.children);
+    // Hanya isi <pre> yang disalin; judul figcaption ikut terbawa kalau tidak.
+    const rawText = extractText(figurePre(props.children));
     if (figureLanguage(props.children) === "mermaid") {
       return <Mermaid chart={rawText} />;
     }
