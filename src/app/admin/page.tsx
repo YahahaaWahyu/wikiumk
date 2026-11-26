@@ -2,6 +2,7 @@ import Link from "next/link";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import Pagination from "@/components/Pagination";
+import AdminDeleteButton from "@/app/admin/AdminDeleteButton";
 import { searchArticles, categories } from "@/lib/data";
 
 // searchParams menentukan isi tabel, jadi route ini wajib dirender per-request.
@@ -125,14 +126,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<Pa
                       >
                         Ubah
                       </Link>
-                      {/* Hapus menunggu dialog konfirmasi yang belum digambar di wireframe. */}
-                      <button
-                        type="button"
-                        disabled
-                        className={`${rowButtonClass} bg-dark text-paper disabled:opacity-40`}
-                      >
-                        Hapus
-                      </button>
+                      <AdminDeleteButton slug={article.slug} title={article.title} />
                     </span>
                   </td>
                 </tr>
