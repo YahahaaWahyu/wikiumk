@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { authClient } from "@/lib/auth-client";
 
 const GUEST_LINKS = [
   { href: "/", label: "Beranda" },
@@ -19,8 +21,15 @@ const searchClass =
 
 export default function Navbar({ variant = "guest" }: { variant?: "guest" | "admin" }) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const { data: session } = authClient.useSession();
   const links = variant === "admin" ? ADMIN_LINKS : GUEST_LINKS;
   const action = variant === "admin" ? "/admin" : "/";
+
+  async function handleSignOut() {
+    await authClient.signOut();
+    router.push("/login");
+  }
 
   return (
     <header className="shrink-0 border-b border-line bg-paper">
@@ -49,6 +58,7 @@ export default function Navbar({ variant = "guest" }: { variant?: "guest" | "adm
             </div>
             <button
               type="button"
+              onClick={handleSignOut}
               className="ml-[28px] h-8 w-16 rounded-md border border-line bg-chrome text-[13px]"
             >
               Keluar
@@ -59,12 +69,28 @@ export default function Navbar({ variant = "guest" }: { variant?: "guest" | "adm
             <form method="get" action={action} className="w-[360px]">
               <input name="q" aria-label="Cari artikel" placeholder="Cari artikel..." className={searchClass} />
             </form>
-            <Link
-              href="/login"
-              className="ml-[84px] flex h-8 w-24 items-center justify-center rounded-md bg-dark text-[13px] text-paper"
-            >
-              Masuk
-            </Link>
+            {session ? (
+              <>
+                <div className="ml-[84px] flex items-center gap-[13px]">
+                  <span className="h-8 w-8 rounded-md bg-fill" aria-hidden />
+                  <span className="text-[13px]">{session.user.name}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="ml-[28px] h-8 w-16 rounded-md border border-line bg-chrome text-[13px]"
+                >
+                  Keluar
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="ml-[84px] flex h-8 w-24 items-center justify-center rounded-md bg-dark text-[13px] text-paper"
+              >
+                Masuk
+              </Link>
+            )}
           </div>
         )}
 
@@ -89,11 +115,16 @@ export default function Navbar({ variant = "guest" }: { variant?: "guest" | "adm
                 {l.label}
               </Link>
             ))}
-            {variant !== "admin" && (
-              <Link href="/login" onClick={() => setOpen(false)}>
-                Masuk
-              </Link>
-            )}
+            {variant !== "admin" &&
+              (session ? (
+                <button type="button" onClick={handleSignOut} className="text-left">
+                  Keluar
+                </button>
+              ) : (
+                <Link href="/login" onClick={() => setOpen(false)}>
+                  Masuk
+                </Link>
+              ))}
           </nav>
           <form method="get" action={action} className="mt-4">
             <input
