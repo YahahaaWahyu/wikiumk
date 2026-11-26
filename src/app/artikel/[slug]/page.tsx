@@ -60,7 +60,9 @@ export default async function ArticlePage({
 
         <hr className="mt-6 border-line" />
 
-        <div className="mt-[34px] text-[15px] leading-[26px]">
+        {/* break-words: warisan overflow-wrap supaya token panjang tanpa spasi
+            (tautan, id, kata uji) patah di kolom, bukan menembus keluar. */}
+        <div className="mt-[34px] text-[15px] leading-[26px] break-words">
           <MDXRemote
             source={article.content}
             components={mdxComponents}
