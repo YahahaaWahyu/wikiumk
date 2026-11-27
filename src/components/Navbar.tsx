@@ -23,7 +23,7 @@ export default function Navbar({ variant = "guest" }: { variant?: "guest" | "adm
   const action = variant === "admin" ? "/admin" : "/";
 
   return (
-    <header className="shrink-0 border-b border-line bg-paper">
+    <header className="relative z-40 shrink-0 border-b border-line bg-paper">
       <div className="flex h-16 items-center px-4 lg:px-[120px]">
         <Link href="/" className="flex items-center gap-3 lg:w-[300px] lg:shrink-0">
           <span className="h-7 w-7 shrink-0 rounded-md bg-dark" aria-hidden />
@@ -73,7 +73,8 @@ export default function Navbar({ variant = "guest" }: { variant?: "guest" | "adm
           aria-expanded={open}
           aria-label={open ? "Tutup menu" : "Buka menu"}
           onClick={() => setOpen((o) => !o)}
-          className="ml-auto flex h-9 w-9 flex-col items-center justify-center gap-[5px] rounded-md border border-line lg:hidden"
+          aria-controls="mobile-navigation"
+          className="relative z-50 ml-auto flex h-9 w-9 flex-col items-center justify-center gap-[5px] rounded-md border border-line lg:hidden"
         >
           <span className="h-px w-4 bg-ink" />
           <span className="h-px w-4 bg-ink" />
@@ -82,7 +83,10 @@ export default function Navbar({ variant = "guest" }: { variant?: "guest" | "adm
       </div>
 
       {open && (
-        <div className="border-t border-line px-4 py-4 lg:hidden">
+        <div
+          id="mobile-navigation"
+          className="absolute left-0 right-0 top-full z-40 border-t border-line bg-paper px-4 py-4 shadow-[0_8px_16px_rgba(51,51,51,0.08)] lg:hidden"
+        >
           <nav className="flex flex-col gap-4 text-[13px]">
             {links.map((l) => (
               <Link key={l.href} href={l.href} onClick={() => setOpen(false)}>

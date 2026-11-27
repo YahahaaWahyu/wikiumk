@@ -19,11 +19,11 @@ export default function ArticleCard({
         </Link>
       </h2>
 
-      <p className="mt-[30px] line-clamp-3 text-[13px] leading-4 text-muted">
+      <p className="mt-4 line-clamp-3 text-[13px] leading-5 text-muted sm:mt-[30px] sm:leading-4">
         {article.summary}
       </p>
 
-      <p className="mt-[27px] flex items-baseline justify-between text-[11px] leading-[13px] text-muted">
+      <p className="mt-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[11px] leading-4 text-muted sm:mt-[27px]">
         <span>
           {article.author.name} - {formatDate(article.createdAt)}
         </span>

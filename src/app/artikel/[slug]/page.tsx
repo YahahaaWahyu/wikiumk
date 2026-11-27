@@ -12,6 +12,8 @@ import Navbar from "@/components/Navbar";
 import { mdxComponents } from "@/components/mdx";
 import { articles, findArticle, formatDate } from "@/lib/data";
 
+export const instant = false;
+
 export function generateStaticParams() {
   return articles.map((a) => ({ slug: a.slug }));
 }

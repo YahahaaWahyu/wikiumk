@@ -9,7 +9,7 @@ export default function Login() {
   return (
     <>
       <Navbar />
-      <main className="flex flex-1 justify-center px-4 py-[98px]">
+      <main className="flex flex-1 justify-center px-4 py-12 sm:py-[98px]">
         <div className="w-full max-w-[420px] rounded-[10px] border border-line bg-paper p-6">
           <h1 className="text-[18px] font-bold leading-[22px]">Masuk</h1>
           <p className="mt-[9px] text-[13px] leading-4 text-muted">

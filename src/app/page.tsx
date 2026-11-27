@@ -75,7 +75,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Par
         {data.length === 0 ? (
           <p className="mt-[60px] text-[13px] text-muted">Tidak ada hasil.</p>
         ) : (
-          <div className="mt-[60px] grid grid-cols-1 gap-x-[78px] gap-y-[72px] sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 grid grid-cols-1 gap-x-[78px] gap-y-8 sm:mt-[60px] sm:gap-y-[72px] md:grid-cols-2 lg:grid-cols-3">
             {data.map((article) => (
               <ArticleCard key={article.slug} article={article} />
             ))}
