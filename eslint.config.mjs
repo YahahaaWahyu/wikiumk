@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Skill pihak ketiga yang tinggal di direktori agent. Isinya kode orang
+    // lain dan bisa berubah lewat `skills update`, jadi jangan di-lint.
+    ".agents/**",
+    ".claude/**",
+    ".windsurf/**",
   ]),
 ]);
 
