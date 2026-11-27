@@ -12,6 +12,10 @@ import Navbar from "@/components/Navbar";
 import { mdxComponents } from "@/components/mdx";
 import { articles, findArticle, formatDate } from "@/lib/data";
 
+// Semua slug sudah di-prerender dan halaman ini memakai "use cache" — tidak ada
+// yang menunggu per-request. Baris ini hanya mematikan validasi, bukan memblokir.
+export const instant = false;
+
 export function generateStaticParams() {
   return articles.map((a) => ({ slug: a.slug }));
 }
