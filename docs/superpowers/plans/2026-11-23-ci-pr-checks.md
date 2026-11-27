@@ -17,7 +17,7 @@
 - Node dipin ke `26`.
 - pnpm dipin lewat `packageManager: "pnpm@12.21.0"` di `package.json`.
 - Cabang kerja dibuat dari `main`, bukan dari `uiux-sprint1`.
-- Satu file baru saja: `.github/workflows/ci.yml`.
+- Satu file baru di luar `docs/superpowers/`: `.github/workflows/ci.yml`.
 - Tidak ada PostgreSQL, `DATABASE_URL`, atau `.env` di CI. Tidak ada langkah untuk itu.
 - Tidak ada cache pnpm.
 - Tidak memakai corepack: corepack tidak dibundel di Node 26, jadi `corepack enable` akan gagal.
