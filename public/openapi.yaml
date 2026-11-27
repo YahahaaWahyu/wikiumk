@@ -9,10 +9,14 @@ info:
     REST API untuk Wiki UMK, platform informasi akademik dan forum diskusi
     mahasiswa Universitas Muria Kudus.
 
-    **Amplop respons:** semua endpoint mengembalikan
+    **Amplop respons:** semua endpoint di luar auth mengembalikan
     `{ "success": true, "data": ... }` saat berhasil, atau
     `{ "success": false, "message": "..." }` saat gagal. Endpoint daftar
     menambahkan objek `pagination` di samping `data`.
+
+    **Endpoint auth** dijalankan Better Auth dan tidak memakai amplop itu.
+    Sukses memakai bentuknya masing-masing; kegagalan membalas
+    `{ "code": "...", "message": "..." }` dengan status HTTP sesuai.
 
     **Isi artikel** disimpan sebagai markdown. Server menyanitasi isi sebelum
     menyimpan dan sebelum mengirim, jadi klien tidak menerima HTML mentah
@@ -51,10 +55,13 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /auth/register:
+  /api/auth/sign-up/email:
     post:
       tags: [Auth]
       summary: Daftar akun baru
+      description: |
+        Dihandeli Better Auth. Saat berhasil, cookie sesi ikut disetel
+        sehingga pengguna langsung masuk.
       operationId: register
       requestBody:
         required: true
@@ -62,59 +69,74 @@ paths:
           application/json:
             schema:
               type: object
-              additionalProperties: false
               required: [name, email, password]
               properties:
                 name:
                   type: string
-                  minLength: 1
-                  maxLength: 100
                   example: Budi Santoso
                 email:
                   type: string
                   format: email
-                  maxLength: 254
                   example: budi@std.umk.ac.id
                 password:
                   type: string
-                  minLength: 8
-                  maxLength: 72
                   example: rahasia123
+                image:
+                  type: string
+                  description: URL foto profil
+                callbackURL:
+                  type: string
+                  description: URL tujuan setelah verifikasi email
+                rememberMe:
+                  type: boolean
+                  default: true
+                  description: false membuat sesi tidak dikenang
       responses:
-        "201":
-          description: Akun berhasil dibuat
+        "200":
+          description: Akun dibuat dan cookie sesi di-setel
+          headers:
+            Set-Cookie:
+              description: Cookie sesi Better Auth
+              schema:
+                type: string
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserResponse"
-              example:
-                success: true
-                data:
-                  id: "1"
-                  name: Budi Santoso
-                  email: budi@std.umk.ac.id
-                  role: STUDENT
+                type: object
+                required: [token, user]
+                properties:
+                  token:
+                    type: string
+                    nullable: true
+                    description: Token sesi; null bila auto-sign-in dimatikan
+                  user:
+                    $ref: "#/components/schemas/User"
         "400":
-          $ref: "#/components/responses/BadRequest"
-        "409":
+          description: Body tidak valid atau format email salah
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthError"
+              example:
+                code: INVALID_EMAIL
+                message: Invalid email
+        "422":
           description: Email sudah terdaftar
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/AuthError"
               example:
-                success: false
-                message: Email sudah terdaftar
-        "500":
-          $ref: "#/components/responses/InternalServerError"
+                code: USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL
+                message: User already exists. Use another email.
 
-  /auth/login:
+  /api/auth/sign-in/email:
     post:
       tags: [Auth]
       summary: Login dan mulai sesi
       description: |
-        Login yang berhasil menyetel cookie sesi dengan atribut
-        `HttpOnly; Secure; SameSite=Lax; Path=/`.
+        Dihandeli Better Auth. Berhasil menyetel cookie sesi
+        `HttpOnly; SameSite=Lax; Path=/`, di produksi diawali `__Secure-`.
       operationId: login
       requestBody:
         required: true
@@ -122,7 +144,6 @@ paths:
           application/json:
             schema:
               type: object
-              additionalProperties: false
               required: [email, password]
               properties:
                 email:
@@ -132,73 +153,161 @@ paths:
                 password:
                   type: string
                   example: rahasia123
+                callbackURL:
+                  type: string
+                  description: URL tujuan; membuat `redirect` bernilai true
+                rememberMe:
+                  type: boolean
+                  default: true
       responses:
         "200":
-          description: Login berhasil dan cookie sesi di-set
+          description: Login berhasil dan cookie sesi di-setel
           headers:
             Set-Cookie:
-              description: Cookie sesi (HttpOnly; Secure; SameSite=Lax; Path=/)
+              description: Cookie sesi Better Auth
               schema:
                 type: string
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserResponse"
+                type: object
+                required: [redirect, token, user]
+                properties:
+                  redirect:
+                    type: boolean
+                    enum: [false]
+                    description: true bila `callbackURL` dikirim pada request
+                  token:
+                    type: string
+                    description: Token sesi
+                  url:
+                    type: string
+                    nullable: true
+                    description: Nilai `callbackURL` yang diteruskan
+                  user:
+                    $ref: "#/components/schemas/User"
+              example:
+                redirect: false
+                token: 0f1c2d3e4a5b6c7d8e9f
+                url: null
+                user:
+                  id: usr_0f1c2d3e
+                  email: budi@std.umk.ac.id
+                  name: Budi Santoso
+                  image: null
+                  emailVerified: false
+                  createdAt: "2026-11-27T00:00:00.000Z"
+                  updatedAt: "2026-11-27T00:00:00.000Z"
         "400":
-          $ref: "#/components/responses/BadRequest"
+          description: Body tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthError"
+              example:
+                code: VALIDATION_ERROR
+                message: Invalid input
         "401":
           description: Email atau password salah
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/AuthError"
               example:
-                success: false
-                message: Email atau password salah
-        "500":
-          $ref: "#/components/responses/InternalServerError"
+                code: INVALID_EMAIL_OR_PASSWORD
+                message: Invalid email or password
 
-  /auth/logout:
+  /api/auth/sign-out:
     post:
       tags: [Auth]
       summary: Keluar dari sesi
+      description: |
+        Menghapus sesi di server lalu mengatur cookie sesi kedaluwarsa.
+        Berhasil bahkan tanpa sesi aktif.
       operationId: logout
       security:
         - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                callbackURL:
+                  type: string
+                  description: URL tujuan setelah logout penyedia
+                disableRedirect:
+                  type: boolean
+                  description: true mengembalikan URL tanpa redirect
+                state:
+                  type: string
       responses:
         "200":
-          description: Sesi diakhiri
+          description: Sesi diakhiri dan cookie dihapus
+          headers:
+            Set-Cookie:
+              description: Cookie sesi diatur kedaluwarsa
+              schema:
+                type: string
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MessageResponse"
+                type: object
+                required: [success]
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  url:
+                    type: string
+                    description: URL logout penyedia bila tersedia
+                  redirect:
+                    type: boolean
+                    description: true bila klien harus redirect ke `url`
               example:
                 success: true
-                data:
-                  message: Berhasil keluar
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
 
-  /auth/me:
+  /api/auth/get-session:
     get:
       tags: [Auth]
-      summary: Ambil data pengguna yang sedang login
+      summary: Ambil sesi pengguna yang sedang login
+      description: |
+        Mengembalikan objek `{ session, user }` bila cookie sesi valid,
+        atau `null` bila tidak ada sesi. Tidak membalas 401.
       operationId: getMe
       security:
         - cookieAuth: []
       responses:
         "200":
-          description: Pengguna yang sedang login
+          description: Sesi aktif, atau null bila tidak ada sesi
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserResponse"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
+                oneOf:
+                  - type: object
+                    required: [session, user]
+                    properties:
+                      session:
+                        $ref: "#/components/schemas/Session"
+                      user:
+                        $ref: "#/components/schemas/User"
+                  - type: "null"
+              example:
+                session:
+                  id: ses_0f1c2d3e
+                  userId: usr_0f1c2d3e
+                  token: 0f1c2d3e4a5b6c7d8e9f
+                  expiresAt: "2026-12-04T00:00:00.000Z"
+                  createdAt: "2026-11-27T00:00:00.000Z"
+                  updatedAt: "2026-11-27T00:00:00.000Z"
+                user:
+                  id: usr_0f1c2d3e
+                  email: budi@std.umk.ac.id
+                  name: Budi Santoso
+                  image: null
+                  emailVerified: false
+                  createdAt: "2026-11-27T00:00:00.000Z"
+                  updatedAt: "2026-11-27T00:00:00.000Z"
 
   /categories:
     get:
@@ -402,8 +511,10 @@ components:
     cookieAuth:
       type: apiKey
       in: cookie
-      name: session
-      description: Cookie sesi yang diset saat login (HttpOnly; Secure; SameSite=Lax)
+      name: better-auth.session_token
+      description: |
+        Cookie sesi Better Auth (HttpOnly; SameSite=Lax; Path=/).
+        Di produksi atau atas HTTPS namanya diawali `__Secure-`.
 
   parameters:
     Slug:
@@ -536,37 +647,78 @@ components:
               type: string
               example: Berhasil keluar
 
-    UserResponse:
-      type: object
-      required: [success, data]
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: "#/components/schemas/User"
-
     User:
       type: object
-      required: [id, name, email, role]
+      description: Objek pengguna menurut Better Auth. Tidak ada field peran.
+      required: [id, email, name, emailVerified, createdAt, updatedAt]
       properties:
         id:
           type: string
-          example: "1"
-        name:
-          type: string
-          example: Budi Santoso
+          example: usr_0f1c2d3e
         email:
           type: string
           format: email
           example: budi@std.umk.ac.id
-        role:
-          $ref: "#/components/schemas/Role"
+        name:
+          type: string
+          example: Budi Santoso
+        image:
+          type: string
+          nullable: true
+          example: null
+        emailVerified:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-11-27T00:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-11-27T00:00:00.000Z"
 
-    Role:
-      type: string
-      enum: [STUDENT, ADMIN]
-      example: STUDENT
+    Session:
+      type: object
+      description: Catatan sesi yang dibuat Better Auth.
+      required: [id, userId, token, expiresAt, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          example: ses_0f1c2d3e
+        userId:
+          type: string
+          example: usr_0f1c2d3e
+        token:
+          type: string
+          description: Nilai yang disimpan di cookie sesi.
+          example: 0f1c2d3e4a5b6c7d8e9f
+        expiresAt:
+          type: string
+          format: date-time
+          example: "2026-12-04T00:00:00.000Z"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-11-27T00:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-11-27T00:00:00.000Z"
+
+    AuthError:
+      type: object
+      description: |
+        Bentuk error khas Better Auth. Tidak memakai amplop
+        `{ success, message }`; status HTTP memegang status kegagalan.
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          example: INVALID_EMAIL_OR_PASSWORD
+        message:
+          type: string
+          example: Invalid email or password
 
     Category:
       type: object
