@@ -204,9 +204,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthError"
-              example:
-                code: VALIDATION_ERROR
-                message: Invalid input
         "401":
           description: Email atau password salah
           content:
