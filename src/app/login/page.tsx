@@ -1,11 +1,35 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import Field, { inputClass } from "@/components/Field";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import { authClient } from "@/lib/auth-client";
 
 export default function Login() {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    const data = new FormData(e.currentTarget);
+    const email = String(data.get("email") ?? "");
+    const password = String(data.get("password") ?? "");
+
+    setPending(true);
+    const { error } = await authClient.signIn.email({ email, password });
+    setPending(false);
+    if (error) {
+      setError(error.message ?? "Email atau password salah.");
+      return;
+    }
+    router.push("/");
+  }
+
   return (
     <>
       <Navbar />
@@ -16,14 +40,14 @@ export default function Login() {
             Gunakan akun yang sudah terdaftar.
           </p>
 
-          {/* Pilihan statis: form hanya ditampilkan, tidak ada backend yang dipanggil. */}
-          <form className="mt-7" onSubmit={(e) => e.preventDefault()}>
+          <form className="mt-7" onSubmit={onSubmit}>
             <Field htmlFor="email" label="Email">
               <input
                 id="email"
                 name="email"
                 type="email"
                 autoComplete="email"
+                required
                 placeholder="nama@std.umk.ac.id"
                 className={inputClass}
               />
@@ -36,17 +60,23 @@ export default function Login() {
                   name="password"
                   type="password"
                   autoComplete="current-password"
+                  required
                   placeholder="********"
                   className={inputClass}
                 />
               </Field>
             </div>
 
+            {error && (
+              <p className="mt-4 text-[13px] leading-4 text-red-600">{error}</p>
+            )}
+
             <button
               type="submit"
-              className="mt-[27px] h-10 w-full rounded-md bg-dark text-[13px] text-paper"
+              disabled={pending}
+              className="mt-[27px] h-10 w-full rounded-md bg-dark text-[13px] text-paper disabled:opacity-60"
             >
-              Masuk
+              {pending ? "Masuk..." : "Masuk"}
             </button>
           </form>
 

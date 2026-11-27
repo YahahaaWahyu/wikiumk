@@ -1,5 +1,6 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@/generated/prisma/client";
+// Path relatif: auth CLI (better-auth) memuat berkas ini tanpa alias tsconfig.
+import { PrismaClient } from "../generated/prisma/client";
 
 // Singleton: hot-reload Next.js akan membuat klien baru tiap reload kalau tidak
 // disimpan di globalThis, dan tiap klien membawa connection pool sendiri.

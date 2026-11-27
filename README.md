@@ -15,6 +15,9 @@ Dibangun dengan [Next.js](https://nextjs.org) 16 (App Router), React 19, Tailwin
 git clone https://github.com/USERNAME/wikiumk.git
 cd wikiumk
 pnpm install
+cp .env.example .env   # lalu isi password PostgreSQL dan BETTER_AUTH_SECRET
+pnpm exec prisma migrate dev
+pnpm exec prisma generate
 pnpm dev
 ```
 
@@ -60,7 +63,15 @@ Detail lengkap ada di [CONTRIBUTING.md](CONTRIBUTING.md). Ringkasannya:
 
 ## Environment Variables
 
-Belum ada. Akan ditambahkan bersamaan dengan setup database (Task 2), dan hanya `.env.example` yang di-commit.
+Salin `.env.example` ke `.env` lalu isi nilainya. Hanya `.env.example` yang di-commit.
+
+| Variabel | Keterangan |
+|---|---|
+| `DATABASE_URL` | Koneksi PostgreSQL lokal |
+| `BETTER_AUTH_SECRET` | Acak minimal 32 karakter, untuk Better Auth |
+| `BETTER_AUTH_URL` | Base URL aplikasi, misalnya `http://localhost:3000` |
+
+Cara membuat `BETTER_AUTH_SECRET` dan alur autentikasi lengkap ada di [docs/autentikasi.md](docs/autentikasi.md).
 
 ## Deploy
 
