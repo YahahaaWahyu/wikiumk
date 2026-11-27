@@ -187,7 +187,7 @@ export default function HeroMarquee() {
               className="inline-flex h-11 items-center justify-center rounded-md bg-zinc-900 px-7 text-[14px] font-semibold text-white transition-opacity hover:opacity-80
                          dark:bg-white dark:text-zinc-950"
             >
-              Jelajahi Artikel →
+              Jelajahi Artikel
             </Link>
           </div>
         </div>

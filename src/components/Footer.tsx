@@ -1,17 +1,14 @@
 import Link from "next/link";
 
 const LINKS = [
-  { href: "/", label: "Beranda" },
-  { href: "/#kategori", label: "Kategori" },
-  { href: "/#tentang", label: "Tentang" },
+  { href: "/beranda", label: "Beranda" },
+  { href: "/beranda#kategori", label: "Kategori" },
+  { href: "/beranda#tentang", label: "Tentang" },
 ];
 
 export default function Footer() {
   return (
-    <footer
-      id="tentang"
-      className="mt-auto border-t border-line bg-chrome px-4 py-[34px] pb-[17px] lg:px-[120px]"
-    >
+    <footer className="mt-auto border-t border-line bg-chrome px-4 py-[34px] pb-[17px] lg:px-[120px]">
       <div className="flex flex-col gap-8 lg:flex-row">
         <div className="flex-1">
           <p className="text-[15px] font-bold">Wiki UMK</p>

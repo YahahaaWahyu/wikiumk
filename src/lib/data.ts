@@ -696,7 +696,12 @@ export const user = {
   role: "ADMIN" as Role,
 };
 
-export function searchArticles(q?: string, category?: string, page = 1) {
+export function searchArticles(
+  q?: string,
+  category?: string,
+  page = 1,
+  perPage = PER_PAGE
+) {
   const term = (q ?? "").trim().toLowerCase();
   const matches = articles.filter((a) => {
     const categoryOk = !category || a.category.slug === category;
@@ -708,14 +713,14 @@ export function searchArticles(q?: string, category?: string, page = 1) {
   });
 
   const total = matches.length;
-  const totalPages = Math.ceil(total / PER_PAGE);
+  const totalPages = Math.ceil(total / perPage);
   const currentPage = Math.min(Math.max(page, 1), Math.max(totalPages, 1));
 
   return {
-    data: matches.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE),
+    data: matches.slice((currentPage - 1) * perPage, currentPage * perPage),
     pagination: {
       page: currentPage,
-      perPage: PER_PAGE,
+      perPage,
       total,
       totalPages,
     } satisfies Pagination,

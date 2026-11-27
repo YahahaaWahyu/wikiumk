@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore, type MouseEvent } from "react";
 
 function SunIcon() {
   return (
@@ -26,32 +26,79 @@ function MoonIcon() {
   );
 }
 
+function subscribeTheme(callback: () => void) {
+  const observer = new MutationObserver(callback);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+  return () => observer.disconnect();
+}
+
+function getThemeSnapshot(): boolean {
+  return document.documentElement.classList.contains("dark");
+}
+
+function getServerThemeSnapshot(): null {
+  return null;
+}
+
 interface ThemeToggleProps {
   /** "navbar" = pakai warna token paper/ink; "hero" = warna putih overlay untuk latar gelap */
   variant?: "navbar" | "hero";
 }
 
 export default function ThemeToggle({ variant = "navbar" }: ThemeToggleProps) {
-  const [dark, setDark] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const dark = useSyncExternalStore(
+    subscribeTheme,
+    getThemeSnapshot,
+    getServerThemeSnapshot
+  );
 
-  useEffect(() => {
-    setMounted(true);
-    const saved = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const isDark = saved ? saved === "dark" : prefersDark;
-    setDark(isDark);
-    document.documentElement.classList.toggle("dark", isDark);
-  }, []);
-
-  function toggle() {
-    const next = !dark;
-    setDark(next);
+  function applyTheme(next: boolean) {
     document.documentElement.classList.toggle("dark", next);
     localStorage.setItem("theme", next ? "dark" : "light");
   }
 
-  if (!mounted) return <div className="h-8 w-8" />;
+  async function toggle(e: MouseEvent<HTMLButtonElement>) {
+    const next = !dark;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (!document.startViewTransition || reducedMotion) {
+      applyTheme(next);
+      return;
+    }
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    const transition = document.startViewTransition(() => {
+      applyTheme(next);
+    });
+
+    await transition.ready;
+
+    document.documentElement.animate(
+      {
+        clipPath: [
+          `circle(0px at ${x}px ${y}px)`,
+          `circle(${endRadius}px at ${x}px ${y}px)`,
+        ],
+      },
+      {
+        duration: 600,
+        easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+        pseudoElement: "::view-transition-new(root)",
+      }
+    );
+  }
+
+  if (dark === null) return <div className="h-8 w-8" />;
 
   const isHero = variant === "hero";
 

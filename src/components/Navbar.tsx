@@ -24,7 +24,7 @@ export default function Navbar({ variant = "guest" }: { variant?: "guest" | "adm
   const action = variant === "admin" ? "/admin" : "/beranda";
 
   return (
-    <header className="shrink-0 border-b border-line bg-paper">
+    <header className="sticky top-0 z-50 shrink-0 border-b border-line bg-paper/85 backdrop-blur-md">
       <div className="flex h-16 items-center px-4 lg:px-[120px]">
         <Link href="/" className="flex items-center gap-3 lg:w-[300px] lg:shrink-0">
           <span className="h-7 w-7 shrink-0 rounded-md bg-dark" aria-hidden />

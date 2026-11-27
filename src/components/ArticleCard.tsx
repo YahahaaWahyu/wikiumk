@@ -8,8 +8,8 @@ export default function ArticleCard({
   article: ArticleSummary & { readCount?: number };
 }) {
   return (
-    <article className="flex flex-col">
-      <span className="w-fit rounded-[10px] bg-chrome px-[10px] py-[3px] text-[11px] leading-[14px] text-muted">
+    <article className="liquid-glass flex flex-col rounded-[14px] p-6 transition-transform duration-200 hover:-translate-y-0.5">
+      <span className="w-fit rounded-[10px] border border-line/60 bg-chrome/70 px-[10px] py-[3px] text-[11px] leading-[14px] text-muted">
         {article.category.name}
       </span>
 
@@ -19,11 +19,11 @@ export default function ArticleCard({
         </Link>
       </h2>
 
-      <p className="mt-[30px] line-clamp-3 text-[13px] leading-4 text-muted">
+      <p className="mt-4 flex-1 line-clamp-3 text-[13px] leading-5 text-muted">
         {article.summary}
       </p>
 
-      <p className="mt-[27px] flex items-baseline justify-between text-[11px] leading-[13px] text-muted">
+      <p className="mt-6 flex items-baseline justify-between border-t border-line/50 pt-3 text-[11px] leading-[13px] text-muted">
         <span>
           {article.author.name} - {formatDate(article.createdAt)}
         </span>
