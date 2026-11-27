@@ -29,7 +29,7 @@ export default function DeleteDialog({
         </h2>
         <p className="mt-2 text-[13px] leading-4 text-muted">
           Artikel{" "}
-          <span className="font-medium text-ink">"{articleTitle}"</span>{" "}
+          <span className="font-medium text-ink">“{articleTitle}”</span>{" "}
           akan dihapus secara permanen. Tindakan ini tidak bisa dibatalkan.
         </p>
 
