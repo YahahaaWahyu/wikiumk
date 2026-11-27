@@ -39,8 +39,8 @@ export default function Ribbon3DBackground() {
     const container = containerRef.current;
     if (!container) return;
 
-    const width = container.clientWidth || window.innerWidth;
-    const height = container.clientHeight || window.innerHeight;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
     const isMobile = window.innerWidth < 768;
     const cardCount = isMobile
       ? RIBBON_CONFIG.mobileCardCount
@@ -156,16 +156,16 @@ export default function Ribbon3DBackground() {
       scrollState.target = progress;
     };
 
-    const resizeObserver = new ResizeObserver(() => {
-      const w = container.clientWidth || window.innerWidth;
-      const h = container.clientHeight || window.innerHeight;
+    const onResize = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(w, h);
-    });
-    resizeObserver.observe(container);
+    };
 
+    window.addEventListener("resize", onResize, { passive: true });
     window.addEventListener("mousemove", onMouseMove, { passive: true });
     window.addEventListener("scroll", onScroll, { passive: true });
 
@@ -261,9 +261,9 @@ export default function Ribbon3DBackground() {
     return () => {
       cancelAnimationFrame(rafId);
       document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("resize", onResize);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("scroll", onScroll);
-      resizeObserver.disconnect();
       themeObserver.disconnect();
       cardGeometry.dispose();
       cardMaterial.dispose();
@@ -278,14 +278,17 @@ export default function Ribbon3DBackground() {
 
   return (
     <div
-      ref={containerRef}
       aria-hidden
-      className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+      className="pointer-events-none absolute inset-0 -z-10 overflow-x-clip"
       style={{
+        clipPath: "inset(0)",
         maskImage: "linear-gradient(to bottom, black 82%, transparent 100%)",
         WebkitMaskImage:
           "linear-gradient(to bottom, black 82%, transparent 100%)",
       }}
-    />
+    >
+      {/* Sticky 100vh supaya ukuran & rasio 3D ribbon selalu konsisten walau jumlah artikel berubah */}
+      <div ref={containerRef} className="sticky top-0 h-screen w-full" />
+    </div>
   );
 }
