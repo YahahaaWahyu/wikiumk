@@ -67,7 +67,7 @@ export default function HeroMarquee() {
       />
 
       {/* Hero Content */}
-      <div className="relative z-10 mx-auto flex min-h-[420px] max-w-6xl flex-col justify-end px-4 py-14 lg:min-h-[480px] lg:px-[120px] lg:py-20">
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col justify-end px-4 py-14 lg:px-[120px] lg:py-20">
         <span className="w-fit rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-medium tracking-wide text-zinc-200 uppercase backdrop-blur-sm">
           Wiki UMK · Arsip Pengetahuan
         </span>
@@ -82,7 +82,7 @@ export default function HeroMarquee() {
 
         <div className="mt-7 flex flex-wrap items-center gap-3">
           <a
-            href="#artikel-list"
+            href="/beranda"
             className="inline-flex h-10 items-center justify-center rounded-md bg-white px-6 text-[13px] font-semibold text-zinc-950 transition-opacity hover:opacity-90"
           >
             Jelajahi Artikel
