@@ -2,15 +2,16 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const GUEST_LINKS = [
-  { href: "/", label: "Beranda" },
-  { href: "/#kategori", label: "Kategori" },
-  { href: "/#tentang", label: "Tentang" },
+  { href: "/beranda", label: "Beranda" },
+  { href: "/beranda#kategori", label: "Kategori" },
+  { href: "/beranda#tentang", label: "Tentang" },
 ];
 
 const ADMIN_LINKS = [
-  { href: "/", label: "Beranda" },
+  { href: "/beranda", label: "Beranda" },
   { href: "/admin", label: "Kelola artikel" },
 ];
 
@@ -20,7 +21,7 @@ const searchClass =
 export default function Navbar({ variant = "guest" }: { variant?: "guest" | "admin" }) {
   const [open, setOpen] = useState(false);
   const links = variant === "admin" ? ADMIN_LINKS : GUEST_LINKS;
-  const action = variant === "admin" ? "/admin" : "/";
+  const action = variant === "admin" ? "/admin" : "/beranda";
 
   return (
     <header className="shrink-0 border-b border-line bg-paper">
@@ -39,32 +40,34 @@ export default function Navbar({ variant = "guest" }: { variant?: "guest" | "adm
         </nav>
 
         {variant === "admin" ? (
-          <div className="ml-auto hidden items-center lg:flex">
+          <div className="ml-auto hidden items-center gap-3 lg:flex">
             <form method="get" action={action} className="w-[300px]">
               <input name="q" aria-label="Cari artikel" placeholder="Cari artikel..." className={searchClass} />
             </form>
-            <div className="ml-[63px] flex items-center gap-[13px]">
+            <div className="ml-6 flex items-center gap-[13px]">
               <span className="h-8 w-8 rounded-md bg-fill" aria-hidden />
               <span className="text-[13px]">Admin</span>
             </div>
             <button
               type="button"
-              className="ml-[28px] h-8 w-16 rounded-md border border-line bg-chrome text-[13px]"
+              className="h-8 w-16 rounded-md border border-line bg-chrome text-[13px]"
             >
               Keluar
             </button>
+            <ThemeToggle variant="navbar" />
           </div>
         ) : (
-          <div className="ml-auto hidden items-center lg:flex">
-            <form method="get" action={action} className="w-[360px]">
+          <div className="ml-auto hidden items-center gap-3 lg:flex">
+            <form method="get" action={action} className="w-[300px]">
               <input name="q" aria-label="Cari artikel" placeholder="Cari artikel..." className={searchClass} />
             </form>
             <Link
               href="/login"
-              className="ml-[84px] flex h-8 w-24 items-center justify-center rounded-md bg-dark text-[13px] text-paper"
+              className="ml-6 flex h-8 w-24 items-center justify-center rounded-md bg-dark text-[13px] text-paper"
             >
               Masuk
             </Link>
+            <ThemeToggle variant="navbar" />
           </div>
         )}
 

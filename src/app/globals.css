@@ -1,30 +1,56 @@
 @import "tailwindcss";
 
+/* Aktifkan dark mode berbasis class .dark di <html> (Tailwind v4) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Token wireframe: warna diambil langsung dari
-   docs/wireframe/wikiumk-wireframe.figcraft supaya halaman dan gambar sama.
-   Radius sengaja tidak dibuat token sendiri: 4px dan 6px sudah ada di skala
-   bawaan Tailwind (sm, md), sedangkan 10px ditulis rounded-[10px] supaya tidak
-   menimpa --radius-lg bawaan. */
-@theme {
+   docs/wireframe/wikiumk-wireframe.figcraft supaya halaman dan gambar sama. */
+@theme inline {
   --font-sans: var(--font-geist-sans, system-ui), sans-serif;
 
-  --color-paper: #ffffff;
-  --color-line: #c8c8c8;
-  --color-ink: #333333;
-  --color-muted: #6b6b6b;
-  --color-chrome: #f4f4f4;
-  --color-fill: #e6e6e6;
-  --color-dark: #3f3f3f;
+  /* Light mode defaults */
+  --color-paper: var(--paper);
+  --color-line:  var(--line);
+  --color-ink:   var(--ink);
+  --color-muted: var(--muted);
+  --color-chrome: var(--chrome);
+  --color-fill:  var(--fill);
+  --color-dark:  var(--dark);
 }
 
-html {
+/* Light mode base values */
+:root {
+  --paper:  #ffffff;
+  --line:   #c8c8c8;
+  --ink:    #333333;
+  --muted:  #6b6b6b;
+  --chrome: #f4f4f4;
+  --fill:   #e6e6e6;
+  --dark:   #3f3f3f;
+  --beam-color: #18181b;
+
   color-scheme: light;
+}
+
+/* Dark mode — aktif saat <html class="dark"> */
+:root.dark {
+  --paper:  #111111;
+  --line:   #2e2e2e;
+  --ink:    #e8e8e8;
+  --muted:  #9b9b9b;
+  --chrome: #1a1a1a;
+  --fill:   #252525;
+  --dark:   #d0d0d0;
+  --beam-color: #ffffff;
+
+  color-scheme: dark;
 }
 
 body {
   background: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
+  transition: background 0.25s ease, color 0.25s ease;
 }
 
 /* Satu cincin fokus untuk seluruh halaman supaya navigasi keyboard terlihat. */
@@ -34,28 +60,16 @@ body {
 }
 
 @keyframes marquee-up {
-  0% {
-    transform: translateY(0%);
-  }
-  100% {
-    transform: translateY(-50%);
-  }
+  0%   { transform: translateY(0%); }
+  100% { transform: translateY(-50%); }
 }
 
 @keyframes marquee-down {
-  0% {
-    transform: translateY(-50%);
-  }
-  100% {
-    transform: translateY(0%);
-  }
+  0%   { transform: translateY(-50%); }
+  100% { transform: translateY(0%); }
 }
 
-.animate-marquee-up {
-  animation: marquee-up 38s linear infinite;
+@keyframes border-spin {
+  0%   { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
-
-.animate-marquee-down {
-  animation: marquee-down 44s linear infinite;
-}
-  

@@ -1,13 +1,14 @@
 import HeroMarquee from "@/components/HeroMarquee";
-import Footer from "@/components/Footer";
-import Navbar from "@/components/Navbar";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Home() {
   return (
-    <>
-      <Navbar />
+    <div className="relative">
+      {/* Toggle floating di pojok kanan atas, sama posisinya dengan navbar halaman lain */}
+      <div className="absolute right-6 top-5 z-20 lg:right-[120px]">
+        <ThemeToggle variant="hero" />
+      </div>
       <HeroMarquee />
-      <Footer />
-    </>
+    </div>
   );
 }
