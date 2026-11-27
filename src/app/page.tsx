@@ -1,5 +1,6 @@
 import ArticleCard from "@/components/ArticleCard";
 import CategoryChip from "@/components/CategoryChip";
+import HeroMarquee from "@/components/HeroMarquee";
 import Pagination from "@/components/Pagination";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
@@ -31,7 +32,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<Par
   return (
     <>
       <Navbar />
-      <main className="px-4 pt-12 lg:px-[120px]">
+      <HeroMarquee />
+      <main id="artikel-list" className="px-4 pt-12 lg:px-[120px]">
         <h1 className="text-[24px] font-bold leading-[29px]">Artikel Wiki</h1>
         <p className="mt-3 text-[13px] leading-4 text-muted">
           Informasi akademik dan kegiatan mahasiswa Universitas Muria Kudus.
