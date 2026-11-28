@@ -48,7 +48,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<Pa
           Tambah, ubah, dan hapus artikel wiki.
         </p>
 
-        <form method="get" action="/admin" className="mt-5 flex items-center gap-[13px]">
+        <form method="get" action="/admin" className="mt-5 flex flex-wrap items-center gap-[13px]">
           <input
             type="search"
             name="q"
@@ -82,7 +82,8 @@ export default async function Admin({ searchParams }: { searchParams: Promise<Pa
         {data.length === 0 ? (
           <p className="mt-[18px] text-[13px] text-muted">Tidak ada hasil.</p>
         ) : (
-          <table className="mt-[18px] w-full table-fixed border-collapse text-[13px]">
+          <div className="mt-[18px] overflow-x-auto">
+            <table className="w-full min-w-[1200px] table-fixed border-collapse text-[13px]">
             <thead>
               <tr className="bg-chrome">
                 <th className="w-[536px] border-b border-line px-4 text-left font-normal">
@@ -138,7 +139,8 @@ export default async function Admin({ searchParams }: { searchParams: Promise<Pa
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         )}
 
         <div className="mt-10">

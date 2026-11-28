@@ -71,14 +71,14 @@ Link [internal](/about) dan [eksternal](https://example.com). Link dengan judul:
 
 Autolink telanjang: https://example.com dan email halo@example.com.
 
-Baris pertama dengan hard break\
+Baris pertama dengan hard break\\
 baris kedua setelah hard break.
 
 HTML entity: &amp; &copy; &nbsp;selesai.
 
 Emoji dan unicode: 🚀 café naïve 日本語.
 
-Escape: \*bukan italic\*, \_bukan italic\_, \[bukan link\]. Referensi catatan kaki pertama.[^1]
+Escape: \\*bukan italic\\*, \\_bukan italic\\_, \\[bukan link\\]. Referensi catatan kaki pertama.[^1]
 
 ## Heading
 
@@ -251,25 +251,25 @@ Kode dengan karakter khusus: \`<div>\`, \`a & b\`, \`x > y\`.
 
 ## Math
 
-Inline math $E = mc^2$ dan $O(n \log n)$.
+Inline math $E = mc^2$ dan $O(n \\log n)$.
 
 $$
-T(n) = 2T\left(\frac{n}{2}\right) + O(n)
+T(n) = 2T\\left(\\frac{n}{2}\\right) + O(n)
 $$
 
 $$
-\begin{aligned}
-(a + b)^2 &= a^2 + 2ab + b^2 \\
+\\begin{aligned}
+(a + b)^2 &= a^2 + 2ab + b^2 \\\\
 (a - b)^2 &= a^2 - 2ab + b^2
-\end{aligned}
+\\end{aligned}
 $$
 
-Math dengan perbandingan $x < y$ dan $a \& b$.
+Math dengan perbandingan $x < y$ dan $a \\& b$.
 
 Harga $5 dan $10 tidak boleh menjadi math. Math di catatan kaki juga diuji.[^math]
 
 $$
-\sum_{i=1}^{n} \frac{x_i^2}{\sigma_i^2} + \prod_{j=1}^{m} \left(1 + \frac{y_j}{\tau_j}\right) + \int_{0}^{\infty} e^{-t^2}\,dt = \frac{\sqrt{\pi}}{2} + \cdots
+\\sum_{i=1}^{n} \\frac{x_i^2}{\\sigma_i^2} + \\prod_{j=1}^{m} \\left(1 + \\frac{y_j}{\\tau_j}\\right) + \\int_{0}^{\\infty} e^{-t^2}\\,dt = \\frac{\\sqrt{\\pi}}{2} + \\cdots
 $$
 
 ## Gambar
