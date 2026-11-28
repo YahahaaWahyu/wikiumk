@@ -1,15 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { MDXRemote } from "next-mdx-remote/rsc";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
-import rehypePrettyCode from "rehype-pretty-code";
-import rehypeSlug from "rehype-slug";
 import "katex/dist/katex.min.css";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { mdxComponents } from "@/components/mdx";
+import { mdxOptions } from "@/lib/mdx-options";
 import { articles, findArticle, formatDate } from "@/lib/data";
 
 // Semua slug sudah di-prerender dan halaman ini memakai "use cache" — tidak ada
@@ -70,28 +66,7 @@ export default async function ArticlePage({
           <MDXRemote
             source={article.content}
             components={mdxComponents}
-            options={{
-              blockJS: false,
-              mdxOptions: {
-                remarkPlugins: [remarkGfm, remarkMath],
-                rehypePlugins: [
-                  rehypeSlug,
-                  [
-                    rehypePrettyCode,
-                    {
-                      theme: "github-light",
-                      keepBackground: false,
-                      // Fallback bahasa agar fence tanpa bahasa ikut diproses menjadi
-                      // <figure>; tanpa ini plugin melewatkannya (if (!lang) return) dan
-                      // kodenya jatuh ke gaya inline code. Bentuk objek dipakai agar
-                      // inline code tetap memakai default (""), bukan "plaintext".
-                      defaultLang: { block: "plaintext" },
-                    },
-                  ],
-                  rehypeKatex,
-                ],
-              },
-            }}
+            options={mdxOptions}
           />
         </div>
 

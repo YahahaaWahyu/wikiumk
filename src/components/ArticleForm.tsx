@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import EditorMarkdown from "@/components/EditorMarkdown";
 import Field, { inputClass } from "@/components/Field";
+import SaveDialog from "@/components/SaveDialog";
 import { categories, formatDate, type ArticleDetail } from "@/lib/data";
 
 const buttonClass =
@@ -19,6 +20,8 @@ export default function ArticleForm({
   const isEdit = mode === "edit";
   const [title, setTitle] = useState(article?.title ?? "");
   const [summary, setSummary] = useState(article?.summary ?? "");
+  const [content, setContent] = useState(article?.content ?? "");
+  const [dialog, setDialog] = useState(false);
 
   return (
     <>
@@ -41,7 +44,13 @@ export default function ArticleForm({
       )}
 
       {/* Pilihan statis: form hanya ditampilkan, tidak ada backend yang dipanggil. */}
-      <form className={isEdit ? "mt-[30px]" : "mt-8"} onSubmit={(e) => e.preventDefault()}>
+      <form
+        className={isEdit ? "mt-[30px]" : "mt-8"}
+        onSubmit={(e) => {
+          e.preventDefault();
+          setDialog(true);
+        }}
+      >
         <Field
           htmlFor="title"
           label="Judul"
@@ -107,7 +116,8 @@ export default function ArticleForm({
             <EditorMarkdown
               id="content"
               placeholder="Tulis isi artikel dalam markdown..."
-              defaultValue={article?.content ?? ""}
+              value={content}
+              onChange={setContent}
             />
           </Field>
         </div>
@@ -130,6 +140,18 @@ export default function ArticleForm({
           </button>
         </div>
       </form>
+
+      {/* Di luar <form> agar tombol dialog tidak pernah ikut submit form. */}
+      {dialog && (
+        <SaveDialog
+          articleTitle={title}
+          isEdit={isEdit}
+          onCancel={() => setDialog(false)}
+          // Backend penyimpanan belum ada — setelah konfirmasi dialog hanya
+          // menutup; isi form tetap utuh.
+          onConfirm={() => setDialog(false)}
+        />
+      )}
     </>
   );
 }
