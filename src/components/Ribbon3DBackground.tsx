@@ -288,7 +288,10 @@ export default function Ribbon3DBackground() {
       }}
     >
       {/* Sticky 100vh supaya ukuran & rasio 3D ribbon selalu konsisten walau jumlah artikel berubah */}
-      <div ref={containerRef} className="sticky top-0 h-screen w-full" />
+      <div
+        ref={containerRef}
+        className="sticky top-0 h-screen w-full will-change-transform"
+      />
     </div>
   );
 }
