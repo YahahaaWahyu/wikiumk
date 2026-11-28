@@ -120,6 +120,18 @@ html {
     0 6px 24px rgba(0, 0, 0, 0.45);
 }
 
+/* Ringankan backdrop-filter di HP supaya scroll tetap 60fps */
+@media (max-width: 767px) {
+  .liquid-glass {
+    backdrop-filter: blur(8px) saturate(120%);
+    -webkit-backdrop-filter: blur(8px) saturate(120%);
+  }
+  .liquid-glass-nav {
+    backdrop-filter: blur(10px) saturate(120%);
+    -webkit-backdrop-filter: blur(10px) saturate(120%);
+  }
+}
+
 /* Matikan cross-fade bawaan View Transition supaya efek liquid circle mulus */
 ::view-transition-old(root),
 ::view-transition-new(root) {

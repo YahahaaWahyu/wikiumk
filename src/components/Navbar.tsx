@@ -71,17 +71,20 @@ export default function Navbar({ variant = "guest" }: { variant?: "guest" | "adm
           </div>
         )}
 
-        <button
-          type="button"
-          aria-expanded={open}
-          aria-label={open ? "Tutup menu" : "Buka menu"}
-          onClick={() => setOpen((o) => !o)}
-          className="ml-auto flex h-9 w-9 flex-col items-center justify-center gap-[5px] rounded-md border border-line lg:hidden"
-        >
-          <span className="h-px w-4 bg-ink" />
-          <span className="h-px w-4 bg-ink" />
-          <span className="h-px w-4 bg-ink" />
-        </button>
+        <div className="ml-auto flex items-center gap-2 lg:hidden">
+          <ThemeToggle variant="navbar" />
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-label={open ? "Tutup menu" : "Buka menu"}
+            onClick={() => setOpen((o) => !o)}
+            className="flex h-9 w-9 flex-col items-center justify-center gap-[5px] rounded-md border border-line"
+          >
+            <span className="h-px w-4 bg-ink" />
+            <span className="h-px w-4 bg-ink" />
+            <span className="h-px w-4 bg-ink" />
+          </button>
+        </div>
       </div>
 
       {open && (

@@ -12,7 +12,8 @@ export default function ScrollMotionBlur({ children }: { children: ReactNode }) 
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
-    if (reducedMotion) return;
+    const isMobile = window.innerWidth < 768;
+    if (reducedMotion || isMobile) return;
 
     let lastY = window.scrollY;
     let currentBlur = 0;
