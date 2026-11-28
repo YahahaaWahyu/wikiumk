@@ -18,6 +18,11 @@ model User {
   email         String
   emailVerified Boolean   @default(false)
   image         String?
+  // Disimpan sebagai string agar cocok dengan role Better Auth (plugin admin).
+  role          String    @default("USER")
+  banned        Boolean   @default(false)
+  banReason     String?
+  banExpires    DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
@@ -37,6 +42,8 @@ model Session {
   userAgent String?
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Diisi plugin admin Better Auth saat ada sesi impersonasi.
+  impersonatedBy String?
 
   @@unique([token])
   @@index([userId])

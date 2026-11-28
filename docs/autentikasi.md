@@ -6,9 +6,11 @@ Login, registrasi, dan sesi di Wiki UMK ditangani [Better Auth](https://www.bett
 
 | Berkas | Peran |
 |---|---|
-| `src/lib/auth.ts` | Instance `betterAuth`, Prisma adapter, metode email/password |
+| `src/lib/auth.ts` | Instance `betterAuth`, Prisma adapter, metode email/password, plugin role & izin |
 | `src/lib/auth-client.ts` | Klien browser (`authClient`) untuk `signUp` / `signIn` / `signOut` / `useSession` |
 | `src/app/api/auth/[...all]/route.ts` | Route handler `GET`/`POST` untuk semua endpoint `/api/auth/*` |
+| `src/proxy.ts` | Gerbang awal `/admin` (pengganti `middleware.ts` di Next 16): redirect yang belum login |
+| `src/app/admin/layout.tsx` | Cek sesi & role `ADMIN` yang sesungguhnya untuk semua rute `/admin` |
 | `prisma/schema.prisma` | Model `User`, `Session`, `Account`, `Verification` |
 | `prisma/migrations/` | Migration yang membuat tabel di atas |
 | `prisma/seed.mjs` | Seed akun pengembangan, dijalankan lewat `pnpm seed` |
@@ -46,7 +48,7 @@ pnpm dev
 
 Buka [http://localhost:3000](http://localhost:3000).
 
-`src/generated/prisma` di-`gitignore`, jadi wajib di-generate ulang setelah mengubah `prisma/schema.prisma`. Sesudah itu **restart `pnpm dev`** — watcher mengabaikan berkas ter-gitignore, sehingga dev server tetap memakai client lama dan semua `/api/auth/*` akan gagal dengan `Prisma schema mismatch`.
+`src/generated/prisma` di-`gitignore`, jadi client dibuat ulang otomatis tiap `pnpm dev` / `pnpm build` (lihat skrip di `package.json`). Kalau mengubah `prisma/schema.prisma` saat dev server sedang jalan, **restart `pnpm dev`** — watcher mengabaikan berkas ter-gitignore, sehingga dev server tetap memakai client lama dan semua `/api/auth/*` akan gagal dengan `Prisma schema mismatch`.
 
 ## Alur pengguna
 
@@ -93,11 +95,25 @@ Seed ini idempoten: akun yang sudah ada tidak disentuh, dan hash password dibuat
 
 Jalankan setelah `prisma migrate` dan `prisma generate`. Password disimpan sebagai hash sehingga tidak bisa dibaca kembali — lupa password berarti menjalankan seed ini lagi.
 
-## Peran (belum diaktifkan)
+## Role dan proteksi `/admin`
 
-Saat ini semua akun berperan sama: belum ada field `role` dan halaman `/admin` belum diproteksi. Rancangan peran (`MAHASISWA`/`ADMIN`) ada di [rancangan-database.md](rancangan-database.md).
+Setiap akun punya kolom `role` di tabel `user`: `USER` (default) atau `ADMIN`. Role dikelola plugin `admin` Better Auth di `src/lib/auth.ts` bersama access control:
 
-Menambahkannya berarti: tambah field `role` ke model `User` di `prisma/schema.prisma`, jalankan `pnpm exec prisma migrate dev`, lalu guard rute `/admin`.
+| Role | Izin |
+|---|---|
+| `ADMIN` | `article:create`, `article:update`, `article:delete`, `user:read` |
+| `USER` | `user:read` |
+
+Pendaftaran baru selalu mendapat `USER` (`input: false`, tidak bisa dikirim dari klien). Rute `/admin` dijaga dua lapis:
+
+1. **`src/proxy.ts`** — hanya mengecek cookie sesi tanpa query database; tanpa cookie → redirect ke `/login?next=/admin`. (Next 16 menamai ulang `middleware.ts` menjadi `proxy.ts`.)
+2. **`src/app/admin/layout.tsx`** — cek sesi asli lewat `auth.api.getSession`; belum login → `/login`, role bukan `ADMIN` → `/`. Inilah otorisasi yang menentukan; proxy hanya penyaring cepat.
+
+Menjadikan akun sebagai admin (sekali jalan, atau lewat `pnpm seed` yang sudah menyetel `admin@dev.com` sebagai `ADMIN`):
+
+```sql
+UPDATE "user" SET role='ADMIN' WHERE email='nama@kampus.ac.id';
+```
 
 ## Berkas terkait
 

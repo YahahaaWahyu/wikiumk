@@ -8,13 +8,13 @@ import { Client } from "pg";
 import { generateRandomString, hashPassword, verifyPassword } from "better-auth/crypto";
 
 const USERS = [
-  { name: "Admin", email: "admin@dev.com", password: "admin123" },
-  { name: "Mahasiswa", email: "student@dev.com", password: "student123" },
+  { name: "Admin", email: "admin@dev.com", password: "admin123", role: "ADMIN" },
+  { name: "Mahasiswa", email: "student@dev.com", password: "student123", role: "USER" },
 ];
 
 const client = new Client({ connectionString: process.env.DATABASE_URL });
 
-async function ensureUser({ name, email, password }) {
+async function ensureUser({ name, email, password, role }) {
   const found = await client.query('SELECT id FROM "user" WHERE email = $1', [email]);
   let userId;
   if (found.rows.length) {
@@ -28,6 +28,9 @@ async function ensureUser({ name, email, password }) {
     );
     console.log(`user  ${email} dibuat`);
   }
+
+  // Samakan role (idempoten) — akun lama yang belum punya role ikut terselaraskan.
+  await client.query('UPDATE "user" SET role = $1 WHERE id = $2 AND role <> $1', [role, userId]);
 
   const acc = await client.query(
     'SELECT id, password FROM "account" WHERE "userId" = $1 AND "providerId" = $2',
